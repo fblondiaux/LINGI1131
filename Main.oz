@@ -8,6 +8,10 @@ define
    WindowPort
    Pacman1
    Pacman2
+   Ghost
+   P1Port
+   P2Port
+   GPort
 in
 
    % TODO add additionnal function
@@ -19,17 +23,30 @@ in
       % Open window
       {Send WindowPort buildWindow}
 
-      
-      % exemple
+      % créer port pour deux pacmans
       Pacman1 = pacman(id:1 color:Input.colorPacman.1 name:Input.pacman.1)
       Pacman2 = pacman(id:2 color:Input.colorPacman.2.1 name:Input.pacman.2.1)
       
+      P1Port = {PlayerManager.playerGenerator pacman000random Pacman1}
+      P2Port = {PlayerManager.playerGenerator pacman000random Pacman2}
+
+      % créer port pour un ghost
+      Ghost = ghost(id:1 color:Input.colorGhost.1 name:Input.ghost.1)
+      GPort = {PlayerManager.playerGenerator ghost000random Ghost}
+
+      % à faire : ajouter les différents messages possibles dans les proc "TreatStream" des fichiers...
+      % ...Ghost000other et Pacman000other (je pense que ce serait bien de commencer par là car je crois que ce n'est pas trop dur et de toute façon on en aura besoin :) )
+
+      
+      
+      % exemple
+      
       {Send WindowPort initPacman(Pacman1)}
       {Send WindowPort initPacman(Pacman2)}
-      {Send WindowPort initGhost(ghost(id:1 color:Input.colorGhost.1 name:Input.ghost.1))}
+      {Send WindowPort initGhost(Ghost)}
       {Send WindowPort spawnPacman(Pacman1 pt(x:4 y:6))}
       {Send WindowPort spawnPacman(Pacman2 pt(x:8 y:6))}
-      {Send WindowPort spawnGhost(ghost(id:1 color:Input.colorGhost.1 name:Input.ghost.1) pt(x:6 y:2))}
+      {Send WindowPort spawnGhost(Ghost pt(x:6 y:2))}
 
       % bouger un pacman
       {Delay 4000}
@@ -41,6 +58,7 @@ in
       {Delay 2000}
       {Send WindowPort hidePacman(Pacman1)}
 
+
 %%% mode turn by turn
       % déterminer aléatoirement l'ordre entre tous les pacmans et les ghosts.
       % Leurs assigner des positions et initialiser le GUI (Graphical User Interface)
@@ -51,9 +69,6 @@ in
       % Initialisation (emplacements, initialisation GUI)
       % ...
       
-      
-
-      
-      
+   
    end
 end

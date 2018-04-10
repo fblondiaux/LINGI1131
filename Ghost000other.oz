@@ -24,7 +24,14 @@ in
    
    
    proc{TreatStream Stream} % has as many parameters as you want
-      case Stream of ...
+      case Stream
+      of getId(?ID)|T then {Browse 'coucou'} % à changer
+      [] move(?ID ?P)|T then {Browse 'coucou'}
+      [] gotKilled()|T then {Browse 'coucou'}
+      [] pacmanPos(ID P)|T then {Browse 'coucou'}
+      [] killPacman(ID)|T then {Browse 'coucou'}
+      [] deathPacman(ID)|T then {Browse 'coucou'}
+      [] setMode(M)|T then {Browse 'coucou'}	 
       end
    end
 end
