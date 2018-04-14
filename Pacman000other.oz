@@ -22,14 +22,14 @@ define
    GotKilled
    GhostPos
    KillGhost
-   DeathGost
+   DeathGhost
    SetMode
-   
 in
    fun {GetId State ID}
       case State
-      of state(p:pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
+      of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
 	 ID = Pacman
+      end 
    end
    fun {AssignSpawn State S}
       case State
@@ -40,7 +40,7 @@ in
    fun {Spawn State P ID}
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 if OnBoard == false && Lives >0 then
+	 if OnBoard == false andthen Lives >0 then
 	    P = Position
 	    ID = Pacman
 	    state(p:Pacman s:Spawn ob:true p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
@@ -125,7 +125,7 @@ in
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then Point2 in
 	 Point2 = {PointRemovedLoop P Point}
-	 state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point2 b:B l:Lives sc:Score gh:Ghost m:Mode)
+	 state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point2 b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
       end 
    end
 
@@ -254,6 +254,8 @@ in
 	{TreatStream T {SetMode State M}}
      end
   end
+end
+
    
 
 
