@@ -208,6 +208,7 @@ in
   proc{TreatStream Stream State} % has as many parameters as you want
 
      % State = state(p:pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
+	%OnBoard : true / false B and po : List of infos gh:Ghost ID and position (Record)	
      
      case Stream
      of getId(ID)|T then

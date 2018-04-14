@@ -21,7 +21,7 @@ in
       %In: Nothing
       %Out: Returns a list of all the ports.
       %We assume that Pacman Color and Name contains the same number of elements.
-      %COMMENT = Name can be a different List - It can be funny names, we should decide if we change that.
+      %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
    fun{CreatePortPacman}
       fun{CreatePortPacmanFull Pacman Color Name ID}
 	       case Pacman of H|T then
