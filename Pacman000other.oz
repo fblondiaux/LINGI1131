@@ -1,4 +1,6 @@
 % Pacman000other.oz
+
+% à faire : vérifier que un ID est bien de type <pacman>
 functor
 import
   Input
@@ -29,6 +31,7 @@ in
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
 	 ID = Pacman
+	 state
       end 
    end
    fun {AssignSpawn State S}
@@ -41,9 +44,9 @@ in
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
 	 if OnBoard == false andthen Lives >0 then
-	    P = Position
+	    P = Spawn
 	    ID = Pacman
-	    state(p:Pacman s:Spawn ob:true p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
+	    state(p:Pacman s:Spawn ob:true p:Spawn po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
 	 else
 	    P = null
 	    ID = null
@@ -54,7 +57,7 @@ in
    fun {Move State P ID}
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 if Lives > 0 then Next in
+	 if OnBoard then Next in
 	    Next = ({OS.rand} mod 4)+1
 	    case Next#P
 	    of 1#pt(x:X y:Y) then
@@ -150,9 +153,19 @@ in
    end
 
    fun {GhostPos State ID P}
+      fun {GhostPosLoop Ghost ID P}
+	 case Ghost
+	 of ghost(id:IDg p:Position)|T then
+	    if IDg == ID then ghost(id:IDg p:P)|T
+	    else ghost(id:IDg p:Position)|{GhostPosLoop T ID P}
+	    end
+	 [] nil then ghost(id:ID p:P)|nil
+	 end
+      end
+   in
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:ghost(ID P)|Ghost m:Mode)
+	 state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:{GhostPosLoop Ghost ID P} m:Mode)
       end
    end
 
@@ -174,6 +187,7 @@ in
       end
    end
 
+   % Je ne sais pas comment informer que ce ghost a été tué par moi (le pacman)
    fun {KillGhost State IDg IDp NewScore}
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then NewState in
