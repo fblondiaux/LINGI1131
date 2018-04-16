@@ -61,6 +61,24 @@ end
 end
 end
 
+%Append the two lists and then shuffle the result
+%In : A list in a certain order
+%Out : Same elements but in a random order     
+fun{Shuffle L1 L2}
+   fun{TakeRandom L}
+      case L of H|T then
+	 local R Elem in
+	    R = ({OS.rand} mod {List.length L})+1
+	    Elem ={List.nth L R}
+	    Elem|{TakeRandom {List.subtract L Elem}}
+	 end
+      []nil then nil
+      end
+   end
+in
+   {TakeRandom {List.append L1 L2}}
+end
+
    thread
       % Create port for window
       WindowPort = {GUI.portWindow}
