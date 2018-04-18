@@ -13,8 +13,9 @@ define
 
    PortsPacman
    PortsGhost
-   IdPacman
+   IdPacman %
    IdGhost
+   Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
    X
 in
       %Function who creates ports for all Pacmans defined in Input.
@@ -63,7 +64,7 @@ end
 
 %Append the two lists and then shuffle the result
 %In : A list in a certain order
-%Out : Same elements but in a random order     
+%Out : Same elements but in a random order
 fun{Shuffle L1 L2}
    fun{TakeRandom L}
       case L of H|T then
@@ -90,24 +91,8 @@ end
       {CreatePortGhost PortsGhost}
       IdPacman = {CreateIDs PortsPacman}
       IdGhost = {CreateIDs PortsGhost}
+      Sequence = {Shuffle IdPacman IdGhost}
 
-      % créer port pour deux pacmans
-    %  Pacman1 = pacman(id:1 color:Input.colorPacman.1 name:Input.pacman.1)
-    %  Pacman2 = pacman(id:2 color:Input.colorPacman.2.1 name:Input.pacman.2.1)
-
-%      P1Port = {PlayerManager.playerGenerator pacman000random Pacman1}
-  %    P2Port = {PlayerManager.playerGenerator pacman000random Pacman2}
-
-      % créer port pour un ghost
-  %    Ghost = ghost(id:1 color:Input.colorGhost.1 name:Input.ghost.1)
-  %    GPort = {PlayerManager.playerGenerator ghost000random Ghost}
-
-      % à faire : ajouter les différents messages possibles dans les proc "TreatStream" des fichiers...
-      % ...Ghost000other et Pacman000other (je pense que ce serait bien de commencer par là car je crois que ce n'est pas trop dur et de toute façon on en aura besoin :) )
-
-
-
-      % exemple
       %Init and spawn the pacman.
       for X in PortsPacman do
       local R ID P
@@ -132,23 +117,22 @@ end
         {Send X spawn(ID P)}
 
       end
-end
-      %{Send WindowPort initPacman(Pacman1)}
-      %{Send WindowPort initPacman(Pacman2)}
-      %{Send WindowPort initGhost(Ghost)}
-      %{Send WindowPort spawnPacman(Pacman1 pt(x:4 y:6))}
-      %{Send P2Port assignSpawn(pt(x:8 y:6))}
-      %{Send P2Port spawn(ID2 P2)}
-      %{Send WindowPort spawnPacman(Pacman2 pt(x:8 y:6))}
-      %{Send GPort assignSpawn(pt(x:6 y:2))}
-      %{Send GPort spawn(ID3 P3)}
-      %{Send WindowPort spawnGhost(Ghost pt(x:6 y:2))}
+      end
+
+
+
+%Todo Ajouter ici l'initialisation des points et des bonus.
+
+%J'ajouterais un port sur lequel on envoie des messages.
+%   Ce port permettrait entre autre de savoir si on est sur un bonus.
+%   Savoir si on est sur un point. (Aucune idée de comment gerer ça...) En plus à chauque fois que quelqu'un mange un bonus on doit prévenir tout les pacmans.
+%   Savoir si un ghost ou un pacman se trouve sur la même place.
 
 
       % bouger un pacman
-      {Delay 1000}
       local ID P in
       {Send PortsPacman.1 move(ID P)}
+            {Delay 1000}
       {Send WindowPort movePacman(IdPacman.1 P)}
       end
       {Delay 2000}
