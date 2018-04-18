@@ -4,16 +4,18 @@ import
    Input
    PlayerManager
    Browser
+   OS
 define
    CreatePortPacman
    CreatePortGhost
    CreateIDs
+   Shuffle
 
    WindowPort
 
    PortsPacman
    PortsGhost
-   IdPacman %
+   IdPacman
    IdGhost
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
    X
@@ -25,7 +27,7 @@ in
       %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
    fun{CreatePortPacman}
       fun{CreatePortPacmanFull Pacman Color Name ID}
-	       case Pacman of H|T then
+	       case Pacman of _|_ then
 	         {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
 	       []nil then nil
 	       end
@@ -67,7 +69,7 @@ end
 %Out : Same elements but in a random order
 fun{Shuffle L1 L2}
    fun{TakeRandom L}
-      case L of H|T then
+      case L of _|_ then
 	 local R Elem in
 	    R = ({OS.rand} mod {List.length L})+1
 	    Elem ={List.nth L R}
@@ -128,12 +130,45 @@ end
 %   Savoir si on est sur un point. (Aucune idée de comment gerer ça...) En plus à chauque fois que quelqu'un mange un bonus on doit prévenir tout les pacmans.
 %   Savoir si un ghost ou un pacman se trouve sur la même place.
 
+%Une fonction que l'on appelle en boucle.
+%     Prends en argument un state et retourne un state.
+%     Le record state contiendrait:
+%         %Un qui nous permettrait de savoir quel est le joueur (À qui le tour par exemple pacman1)
+%         %Plusieurs champs, un par pacman avec sa position.
+%         %Plusieurs champs, un par ghost avec sa position.
+%         %Liste avec les positions des points bonus
+%         %Liste avec les positions des points
+%         %Mode du jeu
+%         %Un champ que l'on décrémente avec le respawnTimePoint (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
+%         %Un champ que l'on décrémente avec le respawnTimeBonus (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
+%         %Un champ que l'on décrémente avec le respawnTimePacman (Quand il vaut -1 -> On ne fait rien, Quand un pacman meurt on le met à respawnTimePacman et on décrémente quand c'est égal à 0 on respawn le pacman.)
+%         %Un champ que l'on décrémente avec le respawnTimeGhost (Quand il vaut -1 -> On ne fait rien, Quand un pacman meurt on le met à respawnTimeGhost et on décrémente quand c'est égal à 0 on respawn le pacman.)
+%         %Pour le respawnTimeGhost et respawnTimePacman comment faire quand plusieurs pacmans meurent à un ou deux tours d'écart et que le respawnTimePacman n'est pas écoulé.
+%
+%     Etapes de cette fonction.
+%       %Décrementer ce qui doit l'etre (respawnTime...(4) si il y en à. )
+%           %Si certaines valeurs sont arrivée au bout -> faire les actions correspondante
+%           %A détailler
+%       %Si le joueur est un pacman
+%         %Vérifier si il y à point sur la case courrante. %On prends quand même le point si le pacman va se faire tuer ?
+%               %Envoyer un message au pacman pour dire qu'il à un point
+%               %Envoyer un message au GUI pour dire que le point à disparu.
+%         %Vérifier si il y à un bonus sur la case. %Pareil comment réagir si il y à 1 ghost et un bonus sur la même case
+%               %Changer le mode si besoin.
+%         %Si mode normal
+%               %Vérifier si le pacman est sur la case d'un ghost -> Pacman meurt= envoyer les messages correspondants.
+%                       %Cas particulier à aprofondir, plusieurs ghost sur une même case qui prends le point.
+%         %Si mode Hunt.
+%               %Vérifier si le pacman est sur la case d'un ghost -> Pacman meurt= envoyer les messages correspondants.
+%                       %Cas particulier à aprofondir, plusieurs ghost sur une même case qui prends le point.
+
+of nil then 
+[] H|T then
+end
 
       % bouger un pacman
-      local ID P in
-      {Send PortsPacman.1 move(ID P)}
-            {Delay 1000}
-      {Send WindowPort movePacman(IdPacman.1 P)}
+      local ID in
+      {Send WindowPort movePacman(IdPacman.1 pt(x:6 y:6))}
       end
       {Delay 2000}
       {Send WindowPort movePacman(IdPacman.2.1 pt(x:6 y:6))}
@@ -141,7 +176,6 @@ end
       % hide a pacman
       {Delay 2000}
       {Send WindowPort hidePacman(IdPacman.2.1)}
-
 
 
 %%% mode turn by turn
