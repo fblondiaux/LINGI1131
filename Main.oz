@@ -1,3 +1,17 @@
+% structure du doc à l'intérieur du in :
+
+/* 
+in
+   % additionnal functions
+   thread
+      % ports
+      % open window
+      % TODO
+   end
+end
+
+*//
+
 functor
 import
    GUI
@@ -20,20 +34,20 @@ define
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
    X
 in
-      %Function who creates ports for all Pacmans defined in Input.
-      %In: Nothing
-      %Out: Returns a list of all the ports.
-      %We assume that Pacman Color and Name contains the same number of elements.
-      %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
+   %Function who creates ports for all Pacmans defined in Input.
+   %In: Nothing
+   %Out: Returns a list of all the ports.
+   %We assume that Pacman Color and Name contains the same number of elements.
+   %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
    fun{CreatePortPacman}
       fun{CreatePortPacmanFull Pacman Color Name ID}
-	       case Pacman of _|_ then
-	         {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
-	       []nil then nil
-	       end
+	 case Pacman of _|_ then
+	    {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
+	 []nil then nil
+	 end
       end
-      in
-      {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1}
+   in
+      {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1} 
    end
 
    %Function who creates ports for all Ghosts defined in Input.
@@ -41,46 +55,63 @@ in
    %Out: Returns a list of all the ports.
    %We assume that Pacman Color and Name contains the same number of elements.
    %TODO = Name can be a different List - It can be funny names, we should decide if we're gonna change that.
-fun{CreatePortGhost}
-   fun{CreatePortGhostFull Ghost Color Name ID}
-     case Ghost of nil then nil
-       else {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
-   end
-   end
+   fun{CreatePortGhost}
+      fun{CreatePortGhostFull Ghost Color Name ID}
+	 case Ghost of nil then nil
+	 else {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
+	 end
+      end
    in
-   {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
-end
-
-%Function who transform a list of Ports into a list of <pacman ID>
-%In: List of Ports
-%Out: List of IDs
-fun{CreateIDs PortList}
-case PortList of H|T then
-local R in
-{Send H getId(R)}
-R|{CreateIDs T}
-end
-[]nil then nil
-end
-end
-
-%Append the two lists and then shuffle the result
-%In : A list in a certain order
-%Out : Same elements but in a random order
-fun{Shuffle L1 L2}
-   fun{TakeRandom L}
-      case L of _|_ then
-	 local R Elem in
-	    R = ({OS.rand} mod {List.length L})+1
-	    Elem ={List.nth L R}
-	    Elem|{TakeRandom {List.subtract L Elem}}
+      {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
+   end
+   
+   %Function who transform a list of Ports into a list of <pacman ID>
+   %In: List of Ports
+   %Out: List of IDs
+   fun{CreateIDs PortList}
+      case PortList of H|T then
+	 local R in
+	    {Send H getId(R)}
+	    R|{CreateIDs T}
 	 end
       []nil then nil
       end
    end
-in
-   {TakeRandom {List.append L1 L2}}
-end
+   
+   %Append the two lists and then shuffle the result
+   %In : A list in a certain order
+   %Out : Same elements but in a random order
+   fun{Shuffle L1 L2}
+      fun{TakeRandom L}
+	 case L of _|_ then
+	    local R Elem in
+	       R = ({OS.rand} mod {List.length L})+1
+	       Elem ={List.nth L R}
+	       Elem|{TakeRandom {List.subtract L Elem}}
+	    end
+	 []nil then nil
+	 end
+      end
+   in
+      {TakeRandom {List.append L1 L2}}
+   end
+
+   /* Donne des positions aléatoires acceptables pour un pacman ou un ghost
+   In : map, nombre de lignes, nombre de colonnes, et valeur acceptable (2 pour pacman, 3 pour ghost)
+   Out : un position <position>
+   */
+   fun {AssignRandomSpawn Map NRow NColumn Value}
+      local X Y in
+	 X = ({OS.rand} mod NRow)+1
+	 Y = ({Os.rand} mod NColumn)+1
+
+	 if {List.nth {List.nth Map X} Y} == Value then
+	    pt(x:X y:Y)
+	 else
+	    {AssignRandomSpawn Map NRow NColumn Value}
+	 end
+      end
+   end
 
    thread
       % Create port for window
@@ -89,39 +120,36 @@ end
       {Send WindowPort buildWindow}
 
       %Create Ports
-      {CreatePortPacman PortsPacman}
-      {CreatePortGhost PortsGhost}
-      IdPacman = {CreateIDs PortsPacman}
-      IdGhost = {CreateIDs PortsGhost}
-      Sequence = {Shuffle IdPacman IdGhost}
+      PortsPacman = {CreatePortPacman} % Liste de ports pour les pacmans
+      PortsGhost = {CreatePortGhost} % Liste de ports pour les ghosts
+      
+      IdPacman = {CreateIDs PortsPacman} % Liste des <pacman> IDs
+      IdGhost = {CreateIDs PortsGhost} % Liste des <ghost> IDs
+      Sequence = {Shuffle IdPacman IdGhost} % Liste avec tous les pacmans et les ghosts dans un ordre aléatoire
 
-      %Init and spawn the pacman.
+      % Initialisation des pacmans et ghosts
+      % Initialisation des spawns pour les pacmans et les ghosts
+      % Affichage des pacmans et des ghosts
       for X in PortsPacman do
-      local R ID P
-      in
-        {Send X getId(R)}
-        {Send WindowPort initPacman(R)}
-        {Send WindowPort spawnPacman(R pt(x:4 y:6))}
-        {Send X assignSpawn(pt(x:4 y:6))} % Comment savoir sur quels points on peux spawn ?
-        {Send X spawn(ID P)}
-
-      end
+	 local ID S in
+	    {Send X getId(ID)}
+	    {Send WindowPort initPacman(ID)}
+	    S = {AssignRandomSpawn Input.map Input.nRow Input.nColumn 2}
+	    {Send X assignSpawn(P)}
+	    {Send WindowPort spawnPacman(ID S)}
+	 end
       end
 
-      %Init and spawn the ghost.
-      for Y in PortsGhost do
-      local R ID P
-      in
-        {Send Y getId(R)}
-        {Send WindowPort initGhost(R)}
-        {Send WindowPort spawnGhost(R pt(x:8 y:6))}
-        {Send X assignSpawn(pt(x:8 y:6))} % Comment savoir sur quels points on peux spawn ?
-        {Send X spawn(ID P)}
-
+      for X in PortsGhost do
+	 local ID S in
+	    {Send X getId(ID)}
+	    {Send WindowPort initGhost(ID)}
+	    S = {AssignRandomSpawn Input.map Input.nRow Input.nColumn 3}
+	    {Send X assignSpawn(P)}
+	    {Send WindowPort spawnGhost(ID S)}
+	 end
       end
-      end
-
-
+    
 
 %Todo Ajouter ici l'initialisation des points et des bonus.
 %Pour chauque point de la map, on regarde si c'est un point -> GUI initPoint + GUI spawnPoint + PacmanS pointSpawn
@@ -213,5 +241,5 @@ end
 
 
 
-   end
-end
+   end % end du thread
+end % end du in

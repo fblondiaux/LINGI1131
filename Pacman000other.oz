@@ -214,11 +214,11 @@ in
   in
     {NewPort Stream Port}
     thread
-       {TreatStream Stream}
+       {TreatStream Stream state(p:ID s:nil ob:false p:nil po:nil bo:nil l:Input.nbLives sc:0 gh:nil m:Input.isTurnByTurn)}
     end
     Port
   end
-
+ 
   proc{TreatStream Stream State} % has as many parameters as you want
 
      % State = state(p:pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
