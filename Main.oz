@@ -178,6 +178,21 @@ in
           %gsl = ghost spawn list, bl = bonus list.
    end
 
+   /*
+   Diffuse un message à toute une liste de ports
+   In : Liste de port et le message à diffuser
+   Out : /
+   */
+   proc {Diffusion PortsList Message}
+      case PortsList
+      of H|T then
+	 {Send H Message}
+	 {Diffusion T Message}
+      [] nil then skip
+      end
+   end
+  
+
    /* Donne des positions aléatoires acceptables pour un pacman ou un ghost
    In : map, nombre de lignes, nombre de colonnes, et valeur acceptable (2 pour pacman, 3 pour ghost)
    Out : un position <position>
