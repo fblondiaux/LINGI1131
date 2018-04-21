@@ -27,6 +27,7 @@ define
    ListMap
    AssignRandomSpawn
 
+
    WindowPort
 
    PortsPacman
@@ -55,6 +56,7 @@ in
    in
       {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1}
    end
+
 
    %Function who creates ports for all Ghosts defined in Input.
    %In: Nothing
@@ -112,7 +114,9 @@ in
     fun {ReadMap Row Column Rec}
        if (Row > (Input.nRow)) then Rec
        else
-	  case {List.nth {List.nth Map Row} Column}
+    local Temp in
+    Temp = {List.nth Map Row}
+	  case {List.nth Temp Column}
 	  of 0 then
 	    local Pos in
 	       Pos = pt(x:Column y:Row)
@@ -120,36 +124,36 @@ in
  	       {Send WindowPort spawnPoint(Pos)}
     	       %TODO envoyer a tous les pacmans
  	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjointAt Rec pl Pos|Rec.pl}}
+ 		  {ReadMap Row+1 1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
  	       else
- 		  {ReadMap Row Column+1 {Record.adjointAt Rec pl Pos|Rec.pl}}
+ 		  {ReadMap Row Column+1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
  	       end
  	    end
  	 [] 1 then
 	    local Pos in
 	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjointAt Rec wl Pos|Rec.wl}}
+ 		  {ReadMap Row+1 1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
  	       else
- 		  {ReadMap Row Column+1 {Record.adjointAt Rec wl Pos|Rec.wl}}
+ 		  {ReadMap Row Column+1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
  	       end
  	    end
  	 [] 2 then
 	    local Pos in
 	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjointAt Rec psl Pos|Rec.psl}}
+ 		  {ReadMap Row+1 1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
  	       else
- 		  {ReadMap Row Column+1 {Record.adjointAt Rec psl Pos|Rec.psl}}
+ 		  {ReadMap Row Column+1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
  	       end
  	    end
  	 [] 3 then
 	    local Pos in
 	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjointAt Rec gsl Pos|Rec.gsl}}
+ 		  {ReadMap Row+1 1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
  	       else
- 		  {ReadMap Row Column+1 {Record.adjointAt Rec gsl Pos|Rec.gsl}}
+ 		  {ReadMap Row Column+1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
  	       end
  	    end
  	 [] 4 then
@@ -159,12 +163,13 @@ in
  	       {Send WindowPort spawnBonus(Pos)}
     		   %TODO envoyer a tous les pacmans
  	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjointAt Rec bl Pos|Rec.bl}}
+ 		  {ReadMap Row+1 1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
  	       else
- 		  {ReadMap Row Column+1 {Record.adjointAt Rec bl Pos|Rec.bl}}
+ 		  {ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
  	       end
  	    end
  	 end
+   end
        end
     end
    in
@@ -205,7 +210,7 @@ in
       IdGhost = {CreateIDs PortsGhost} % Liste des <ghost> IDs
       Sequence = {Shuffle IdPacman IdGhost} % Liste avec tous les pacmans et les ghosts dans un ordre aléatoire
 
-    %  MapRecord = {ListMap}
+     MapRecord = {ListMap}
 
       % Initialisation des pacmans et ghosts
       % Initialisation des spawns pour les pacmans et les ghosts
