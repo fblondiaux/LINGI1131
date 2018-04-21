@@ -28,6 +28,7 @@ define
    AssignRandomSpawn
 
 
+
    WindowPort
 
    PortsPacman
@@ -37,8 +38,7 @@ define
    MapRecord
 
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
-   X
-   Y
+
 in
 
 %Function who creates ports for all Pacmans defined in Input.
@@ -114,8 +114,9 @@ in
     fun {ReadMap Row Column Rec}
        if (Row > (Input.nRow)) then Rec
        else
-
-	  case {List.nth {List.nth Map Row} Column} % element a la rangee Row et a la colonne Column
+    local Temp in
+    Temp = {List.nth Input.map Row}
+	  case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
 
 	  of 0 then
 	    local Pos in
@@ -167,10 +168,10 @@ in
  	       else
  		  {ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
  	       end
+         end
  	    end
  	 end
    end
-       end
     end
    in
       {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
@@ -250,8 +251,8 @@ in
       	 {Send Y getId(R)}
       	 {Send WindowPort initGhost(R)}
       	 {Send WindowPort spawnGhost(R pt(x:8 y:6))}
-      	 {Send X assignSpawn(pt(x:8 y:6))} % Comment savoir sur quels points on peux spawn ?
-      	 {Send X spawn(ID P)}
+      	 {Send Y assignSpawn(pt(x:8 y:6))} % Comment savoir sur quels points on peux spawn ?
+      	 {Send Y spawn(ID P)}
 
             end
          end
@@ -264,8 +265,6 @@ in
          end
       end
 
-      {Send WindowPort initBonus(pt(x:2 y:2))}
-      {Send WindowPort spawnBonus(pt(x:2 y:2))}
 
 
 %Todo Ajouter ici l'initialisation des points et des bonus.
