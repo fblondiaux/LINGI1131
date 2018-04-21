@@ -45,62 +45,62 @@ in
    %Out: Returns a list of all the ports.
    %We assume that Pacman Color and Name contains the same number of elements.
    %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
-fun{CreatePortPacman}
-   fun{CreatePortPacmanFull Pacman Color Name ID}
-      case Pacman of _|_ then
-	 {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
-      []nil then nil
+   fun{CreatePortPacman}
+      fun{CreatePortPacmanFull Pacman Color Name ID}
+	 case Pacman of _|_ then
+	    {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
+	 []nil then nil
+	 end
       end
+   in
+      {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1}
    end
-in
-   {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1}
-end
 
    %Function who creates ports for all Ghosts defined in Input.
    %In: Nothing
    %Out: Returns a list of all the ports.
    %We assume that Pacman Color and Name contains the same number of elements.
    %TODO = Name can be a different List - It can be funny names, we should decide if we're gonna change that.
-fun{CreatePortGhost}
-   fun{CreatePortGhostFull Ghost Color Name ID}
-      case Ghost of _|_ then {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
-      []nil then nil
+   fun{CreatePortGhost}
+      fun{CreatePortGhostFull Ghost Color Name ID}
+	 case Ghost of _|_ then {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
+	 []nil then nil
+	 end
       end
+   in
+      {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
    end
-in
-   {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
-end
 
    %Function who transform a list of Ports into a list of <pacman ID>
    %In: List of Ports
    %Out: List of IDs
-fun{CreateIDs PortList}
-   case PortList of H|T then
-      local R in
-	 {Send H getId(R)}
-	 R|{CreateIDs T}
-      end
-   []nil then nil
-   end
-end
-
-   %Append the two lists and then shuffle the result
-   %In : A list in a certain order
-   %Out : Same elements but in a random order
-fun{Shuffle L1 L2}
-   fun{TakeRandom L}
-      case L of _|_ then
-	 local R Elem in
-	    R = ({OS.rand} mod {List.length L})+1
-	    Elem ={List.nth L R}
-	    Elem|{TakeRandom {List.subtract L Elem}}
+   fun{CreateIDs PortList}
+      case PortList of H|T then
+	 local R in
+	    {Send H getId(R)}
+	    R|{CreateIDs T}
 	 end
       []nil then nil
       end
    end
-in
-   {TakeRandom {List.append L1 L2}}
-end
+
+   %Append the two lists and then shuffle the result
+   %In : A list in a certain order
+   %Out : Same elements but in a random order
+   fun{Shuffle L1 L2}
+      fun{TakeRandom L}
+	 case L of _|_ then
+	    local R Elem in
+	       R = ({OS.rand} mod {List.length L})+1
+	       Elem ={List.nth L R}
+	       Elem|{TakeRandom {List.subtract L Elem}}
+	    end
+	 []nil then nil
+	 end
+      end
+   in
+      {TakeRandom {List.append L1 L2}}
+   end
 
 
 
@@ -112,9 +112,10 @@ end
     fun {ReadMap Row Column Rec}
        if (Row > (Input.nRow)) then Rec
        else
- 	 case {List.nth {List.nth Map Row} Column} of 0 then
- 	    local Pos in
-   Pos = pt(x:Column y:Row)
+	  case {List.nth {List.nth Map Row} Column}
+	  of 0 then
+	    local Pos in
+	       Pos = pt(x:Column y:Row)
  	       {Send WindowPort initPoint(Pos)}
  	       {Send WindowPort spawnPoint(Pos)}
     	       %TODO envoyer a tous les pacmans
@@ -125,8 +126,8 @@ end
  	       end
  	    end
  	 [] 1 then
- 	    local Pos in
-   Pos = pt(x:Column y:Row)
+	    local Pos in
+	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
  		  {ReadMap Row+1 1 {Record.adjointAt Rec wl Pos|Rec.wl}}
  	       else
@@ -134,8 +135,8 @@ end
  	       end
  	    end
  	 [] 2 then
- 	    local Pos in
-   Pos = pt(x:Column y:Row)
+	    local Pos in
+	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
  		  {ReadMap Row+1 1 {Record.adjointAt Rec psl Pos|Rec.psl}}
  	       else
@@ -143,8 +144,8 @@ end
  	       end
  	    end
  	 [] 3 then
- 	    local Pos in
-   Pos = pt(x:Column y:Row)
+	    local Pos in
+	       Pos = pt(x:Column y:Row)
  	       if Column == Input.nColumn then
  		  {ReadMap Row+1 1 {Record.adjointAt Rec gsl Pos|Rec.gsl}}
  	       else
@@ -152,8 +153,8 @@ end
  	       end
  	    end
  	 [] 4 then
- 	    local Pos in
-   Pos = pt(x:Column y:Row)
+	    local Pos in
+	       Pos = pt(x:Column y:Row)
  	       {Send WindowPort initBonus(Pos)}
  	       {Send WindowPort spawnBonus(Pos)}
     		   %TODO envoyer a tous les pacmans
@@ -166,10 +167,10 @@ end
  	 end
        end
     end
- in
-    {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
+   in
+      {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
           %gsl = ghost spawn list, bl = bonus list.
- end
+   end
 
    /* Donne des positions aléatoires acceptables pour un pacman ou un ghost
    In : map, nombre de lignes, nombre de colonnes, et valeur acceptable (2 pour pacman, 3 pour ghost)
