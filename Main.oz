@@ -27,8 +27,6 @@ define
    ListMap
    AssignRandomSpawn
 
-
-
    WindowPort
 
    PortsPacman
@@ -38,6 +36,16 @@ define
    MapRecord
 
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
+
+   PointList
+   WallList
+   PSList % pacman spawn list
+   GSList % ghost spawn list
+   BonusList
+
+   Diffusion
+   AssignRandom
+   
 
 in
 
@@ -104,81 +112,7 @@ in
       {TakeRandom {List.append L1 L2}}
    end
 
-
-
-   /* Fuction who transform a map into 4 lists of positions
-   In : Nothing -> we take Input.Map
-   Out : Gives a record with four list of <positions>, each position have been initialised.
-   Bonus and points are now visible on the map. Spawn have been created (but not assigned to a pacman/ghost */
-   fun {ListMap}
-    fun {ReadMap Row Column Rec}
-       if (Row > (Input.nRow)) then Rec
-       else
-    local Temp in
-    Temp = {List.nth Input.map Row}
-	  case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
-
-	  of 0 then
-	    local Pos in
-	       Pos = pt(x:Column y:Row)
- 	       {Send WindowPort initPoint(Pos)}
- 	       {Send WindowPort spawnPoint(Pos)}
-    	       %TODO envoyer a tous les pacmans
- 	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
- 	       else
- 		  {ReadMap Row Column+1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
- 	       end
- 	    end
- 	 [] 1 then
-	    local Pos in
-	       Pos = pt(x:Column y:Row)
- 	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
- 	       else
- 		  {ReadMap Row Column+1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
- 	       end
- 	    end
- 	 [] 2 then
-	    local Pos in
-	       Pos = pt(x:Column y:Row)
- 	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
- 	       else
- 		  {ReadMap Row Column+1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
- 	       end
- 	    end
- 	 [] 3 then
-	    local Pos in
-	       Pos = pt(x:Column y:Row)
- 	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
- 	       else
- 		  {ReadMap Row Column+1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
- 	       end
- 	    end
- 	 [] 4 then
-	    local Pos in
-	       Pos = pt(x:Column y:Row)
- 	       {Send WindowPort initBonus(Pos)}
- 	       {Send WindowPort spawnBonus(Pos)}
-    		   %TODO envoyer a tous les pacmans
- 	       if Column == Input.nColumn then
- 		  {ReadMap Row+1 1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
- 	       else
- 		  {ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
- 	       end
-         end
- 	    end
- 	 end
-   end
-    end
-   in
-      {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
-          %gsl = ghost spawn list, bl = bonus list.
-   end
-
-   /*
+      /*
    Diffuse un message à toute une liste de ports
    In : Liste de port et le message à diffuser
    Out : /
@@ -191,6 +125,78 @@ in
       [] nil then skip
       end
    end
+
+   /* Fuction who transform a map into 4 lists of positions
+   In : Nothing -> we take Input.Map
+   Out : Gives a record with four list of <positions>, each position have been initialised.
+   Bonus and points are now visible on the map. Spawn have been created (but not assigned to a pacman/ghost */
+   fun {ListMap PortsPacman}
+    fun {ReadMap Row Column Rec}
+       if (Row > (Input.nRow)) then Rec
+       else
+	  local Temp in
+	     Temp = {List.nth Input.map Row}
+	     case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
+	     of 0 then
+		local Pos in
+		   Pos = pt(x:Column y:Row)
+		   {Send WindowPort initPoint(Pos)}
+		   {Send WindowPort spawnPoint(Pos)}
+		   {Diffusion PortsPacman pointSpawn(Pos)} % Diffusion du point à tous les pacmans
+		   if Column == Input.nColumn then
+		      {ReadMap Row+1 1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
+		   else
+		      {ReadMap Row Column+1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
+		   end
+		end
+	     [] 1 then
+		local Pos in
+		   Pos = pt(x:Column y:Row)
+		   if Column == Input.nColumn then
+		      {ReadMap Row+1 1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
+		   else
+		      {ReadMap Row Column+1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
+		   end
+		end
+	     [] 2 then
+		local Pos in
+		   Pos = pt(x:Column y:Row)
+		   if Column == Input.nColumn then
+		      {ReadMap Row+1 1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
+		   else
+		      {ReadMap Row Column+1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
+		   end
+		end
+	     [] 3 then
+		local Pos in
+		   Pos = pt(x:Column y:Row)
+		   if Column == Input.nColumn then
+		      {ReadMap Row+1 1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
+		   else
+		      {ReadMap Row Column+1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
+		   end
+		end
+	     [] 4 then
+		local Pos in
+		   Pos = pt(x:Column y:Row)
+		   {Send WindowPort initBonus(Pos)}
+		   {Send WindowPort spawnBonus(Pos)}
+		   {Diffusion PortsPacman bonusSpawn(Pos)} % Diffusion du bonus à tous les pacmans
+		   if Column == Input.nColumn then
+		      {ReadMap Row+1 1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
+		   else
+		      {ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
+		   end
+		end
+	     end
+	  end
+       end
+    end
+   in
+      {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
+          %gsl = ghost spawn list, bl = bonus list.
+   end
+
   
 
    /* Donne des positions aléatoires acceptables pour un pacman ou un ghost
@@ -210,7 +216,14 @@ in
       end
    end
 
-
+   % Renvoie un élément aléatoire de la liste (utile par exemple pour assigner un spawn random)
+   % In : la liste
+   fun {AssignRandom Liste}
+      N
+   in
+      N = {List.length Liste}
+      {List.nth Liste ({OS.rand} mod N)+1}
+   end
 
    thread
       % Create port for window
@@ -226,61 +239,64 @@ in
       IdGhost = {CreateIDs PortsGhost} % Liste des <ghost> IDs
       Sequence = {Shuffle IdPacman IdGhost} % Liste avec tous les pacmans et les ghosts dans un ordre aléatoire
 
-
-      MapRecord = {ListMap}
-
-      % Initialisation des pacmans et ghosts
+      MapRecord = {ListMap PortsPacman}
+      PointList = MapRecord.1
+      WallList = MapRecord.2
+      PSList = MapRecord.3 % pacman spawn list
+      GSList = MapRecord.4 % ghost spawn list
+      BonusList = MapRecord.5
+	       
       % Initialisation des spawns pour les pacmans et les ghosts
       % Affichage des pacmans et des ghosts
 
-
-
       if {List.length PortsPacman} > 1 then
-
-         for X in PortsPacman do
-            local R ID P
-            in
-      	 {Send X getId(R)}
-      	 {Send WindowPort initPacman(R)}
-      	 {Send WindowPort spawnPacman(R pt(x:4 y:6))}
-      	 {Send X assignSpawn(pt(x:4 y:6))} % Comment savoir sur quels points on peux spawn ?
-      	 {Send X spawn(ID P)}
-
-            end
+	 for X in PortsPacman do
+	    local R ID P S in
+	       {Send X getId(R)}
+	       {Send WindowPort initPacman(R)}
+	       S = {AssignRandom PSList} % position d'un Spawn aléatoire
+	       % TODO : verifier qu'on ne dépasse pas la limite de pacmans/ghosts par spawns
+	       {Send X assignSpawn(S)}
+	       {Send X spawn(ID P)}
+	       if ID== null then {Browse 'erreur spawn pacman'} end % TODO : vérifier si null = nil?
+	       {Send WindowPort spawnPacman(R S)}
+	    end
          end
       else
-          local ID P in
-         {Send WindowPort initPacman(IdPacman.1)}
-         {Send WindowPort spawnPacman(IdPacman.1 pt(x:4 y:6))}
-         {Send PortsPacman.1 assignSpawn(pt(x:4 y:6))} % Comment savoir sur quels points on peux spawn ?
-         {Send PortsPacman.1 spawn(ID P)}
-         end %TODO Verifier les valeurs ID et P
+	 local ID P S in
+	    {Send WindowPort initPacman(IdPacman.1)}
+	    S = {AssignRandom PSList}
+	    {Send PortsPacman.1 assignSpawn(S)} % Comment savoir sur quels points on peux spawn ?
+	    {Send PortsPacman.1 spawn(ID P)}
+	    {Send WindowPort spawnPacman(IdPacman.1 S)}
+	 end %TODO Verifier les valeurs ID et P
       end
-
-
 
       if ({List.length PortsGhost} > 1) then
          for Y in PortsGhost do
-            local R ID P
-            in
-      	 {Send Y getId(R)}
-      	 {Send WindowPort initGhost(R)}
-      	 {Send WindowPort spawnGhost(R pt(x:8 y:6))}
-      	 {Send Y assignSpawn(pt(x:8 y:6))} % Comment savoir sur quels points on peux spawn ?
-      	 {Send Y spawn(ID P)}
-
+	    local R ID P S in
+	       {Send Y getId(R)}
+	       {Send WindowPort initGhost(R)}
+	       S = {AssignRandom GSList} % TODO : verifier qu'on ne dépasse pas la limite de pacmans/ghosts par spawns
+	       {Send Y assignSpawn(S)} 
+	       {Send Y spawn(ID P)}
+	       {Send WindowPort spawnGhost(R S)}
+	       %TODO Verifier les valeurs ID et P
             end
          end
       else
-      local ID P in
-         {Send WindowPort initGhost(IdGhost.1)}
-         {Send WindowPort spawnGhost(IdGhost.1 pt(x:8 y:6))}
-         {Send PortsGhost.1 assignSpawn(pt(x:8 y:6))} % Comment savoir sur quels points on peux spawn ?
-         {Send PortsGhost.1 spawn(ID P)}
+      local ID P S in
+	 {Send WindowPort initGhost(IdGhost.1)}
+	 S = {AssignRandom GSList}
+         {Send PortsGhost.1 assignSpawn(S)} 
+	 {Send PortsGhost.1 spawn(ID P)}
+	 {Send WindowPort spawnGhost(IdGhost.1 S)}
          end
       end
 
+      % TODO: prévenir les pacmans de la position des ghosts, et les ghosts de la position des pacmans
 
+  
 
 %Todo Ajouter ici l'initialisation des points et des bonus.
 %Pour chauque point de la map, on regarde si c'est un point -> GUI initPoint + GUI spawnPoint + PacmanS pointSpawn
