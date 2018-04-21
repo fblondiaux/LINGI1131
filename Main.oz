@@ -114,9 +114,9 @@ in
     fun {ReadMap Row Column Rec}
        if (Row > (Input.nRow)) then Rec
        else
-    local Temp in
-    Temp = {List.nth Map Row}
-	  case {List.nth Temp Column}
+
+	  case {List.nth {List.nth Map Row} Column} % element a la rangee Row et a la colonne Column
+
 	  of 0 then
 	    local Pos in
 	       Pos = pt(x:Column y:Row)
@@ -210,7 +210,8 @@ in
       IdGhost = {CreateIDs PortsGhost} % Liste des <ghost> IDs
       Sequence = {Shuffle IdPacman IdGhost} % Liste avec tous les pacmans et les ghosts dans un ordre aléatoire
 
-     MapRecord = {ListMap}
+
+      MapRecord = {ListMap}
 
       % Initialisation des pacmans et ghosts
       % Initialisation des spawns pour les pacmans et les ghosts
