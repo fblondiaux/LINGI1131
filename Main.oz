@@ -1,16 +1,3 @@
-% structure du doc à l'intérieur du in :
-
-/*
-in
-   % additionnal functions
-   thread
-      % ports
-      % open window
-      % TODO
-   end
-end
-
-*/
 
 functor
 import
@@ -30,8 +17,6 @@ define
    DecListGhost
    BonusDec
 
-
-
    WindowPort
 
    PortsPacman
@@ -42,14 +27,22 @@ define
 
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
    PointList
-WallList
-PSList % pacman spawn list
-GSList % ghost spawn list
-BonusList
+   WallList
+   PSList % pacman spawn list : tous les spawns possibles pour les pacmans
+   GSList % ghost spawn list
+   BonusList
 
-Diffusion
-AssignRandom
+   PSList2
+   GSList2
+   ListSpawnPacman % liste des spawns pour chaque pacman
+   ListSpawnGhost 
 
+   Diffusion
+   Mult
+   InitSList
+   Remove
+   AssignRandomSpawn
+   
 in
 
 %Function who creates ports for all Pacmans defined in Input.
@@ -116,154 +109,141 @@ in
    end
 
    /*
-Diffuse un message à toute une liste de ports
-In : Liste de port et le message à diffuser
-Out : /
-*/
-proc {Diffusion PortsList Message}
-   case PortsList
-   of H|T then
-{Send H Message}
-{Diffusion T Message}
-   [] nil then skip
+   Diffuse un message à toute une liste de ports
+   In : Liste de port et le message à diffuser
+   Out : /
+   */
+   proc {Diffusion PortsList Message}
+      case PortsList
+      of H|T then
+	 {Send H Message}
+	 {Diffusion T Message}
+      [] nil then skip
+      end
    end
-end
 
-   /* Fuction who transform a map into 4 lists of positions
-   In : Nothing -> we take Input.Map
-   Out : Gives a record with four list of <positions>, each position have been initialised.
-   Bonus and points are now visible on the map. Spawn have been created (but not assigned to a pacman/ghost */
-  fun {ListMap PortsPacman}
-    fun {ReadMap Row Column Rec}
-       if (Row > (Input.nRow)) then Rec
-       else
-       local Temp in
-      	     Temp = {List.nth Input.map Row}
-      	     case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
-      	     of 0 then
-      		local Pos in
-      		   Pos = pt(x:Column y:Row)
-      		   {Send WindowPort initPoint(Pos)}
-      		   {Send WindowPort spawnPoint(Pos)}
-      		   {Diffusion PortsPacman pointSpawn(Pos)} % Diffusion du point à tous les pacmans
-      		   if Column == Input.nColumn then
-      		      {ReadMap Row+1 1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
-      		   else
-      		      {ReadMap Row Column+1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
-      		   end
-      		end
-      	     [] 1 then
-      		local Pos in
-      		   Pos = pt(x:Column y:Row)
-      		   if Column == Input.nColumn then
-      		      {ReadMap Row+1 1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
-      		   else
-      		      {ReadMap Row Column+1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
-      		   end
-      		end
-      	     [] 2 then
-      		local Pos in
-      		   Pos = pt(x:Column y:Row)
-      		   if Column == Input.nColumn then
-      		      {ReadMap Row+1 1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
-      		   else
-      		      {ReadMap Row Column+1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
-      		   end
-      		end
-      	     [] 3 then
-      		local Pos in
-      		   Pos = pt(x:Column y:Row)
-      		   if Column == Input.nColumn then
-      		      {ReadMap Row+1 1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
-      		   else
-      		      {ReadMap Row Column+1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
-      		   end
-      		end
-      	     [] 4 then
-      		local Pos in
-      		   Pos = pt(x:Column y:Row)
-      		   {Send WindowPort initBonus(Pos)}
-      		   {Send WindowPort spawnBonus(Pos)}
-      		   {Diffusion PortsPacman bonusSpawn(Pos)} % Diffusion du bonus à tous les pacmans
-      		   if Column == Input.nColumn then
-      		      {ReadMap Row+1 1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
-      		   else
-      		      {ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
-      		   end
-      		end
-      	     end
-      	  end
-             end
-    end
+   %Fuction who transform a map into 4 lists of positions
+   %In : Nothing -> we take Input.Map
+   %Out : Gives a record with four list of <positions>, each position have been initialised.
+   %Bonus and points are now visible on the map. Spawn have been created (but not assigned to a pacman/ghost 
+   fun {ListMap PortsPacman}
+      fun {ReadMap Row Column Rec}
+	 if (Row > (Input.nRow)) then Rec
+	 else
+	    local Temp in
+	       Temp = {List.nth Input.map Row}
+	       case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
+	       of 0 then
+		  local Pos in
+		     Pos = pt(x:Column y:Row)
+		     {Send WindowPort initPoint(Pos)}
+		     {Send WindowPort spawnPoint(Pos)}
+		     {Diffusion PortsPacman pointSpawn(Pos)} % Diffusion du point à tous les pacmans
+		     if Column == Input.nColumn then
+			{ReadMap Row+1 1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
+		     else
+			{ReadMap Row Column+1 {Record.adjoinAt Rec pl Pos|Rec.pl}}
+		     end
+		  end
+	       [] 1 then
+		  local Pos in
+		     Pos = pt(x:Column y:Row)
+		     if Column == Input.nColumn then
+			{ReadMap Row+1 1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
+		     else
+			{ReadMap Row Column+1 {Record.adjoinAt Rec wl Pos|Rec.wl}}
+		     end
+		  end
+	       [] 2 then
+		  local Pos in
+		     Pos = pt(x:Column y:Row)
+		     if Column == Input.nColumn then
+			{ReadMap Row+1 1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
+		     else
+			{ReadMap Row Column+1 {Record.adjoinAt Rec psl Pos|Rec.psl}}
+		     end
+		  end
+	       [] 3 then
+		  local Pos in
+		     Pos = pt(x:Column y:Row)
+		     if Column == Input.nColumn then
+			{ReadMap Row+1 1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
+		     else
+			{ReadMap Row Column+1 {Record.adjoinAt Rec gsl Pos|Rec.gsl}}
+		     end
+		  end
+	       [] 4 then
+		  local Pos in
+		     Pos = pt(x:Column y:Row)
+		     {Send WindowPort initBonus(Pos)}
+		     {Send WindowPort spawnBonus(Pos)}
+		     {Diffusion PortsPacman bonusSpawn(Pos)} % Diffusion du bonus à tous les pacmans
+		     if Column == Input.nColumn then
+			{ReadMap Row+1 1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
+		     else
+			{ReadMap Row Column+1 {Record.adjoinAt Rec bl Pos|Rec.bl}}
+		     end
+		  end
+	       end
+	    end
+	 end
+      end
    in
       {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
           %gsl = ghost spawn list, bl = bonus list.
    end
 
-   /* Donne des positions aléatoires acceptables pour un pacman ou un ghost
-   In : map, nombre de lignes, nombre de colonnes, et valeur acceptable (2 pour pacman, 3 pour ghost)
-   Out : un position <position>
-   */
-   % Renvoie un élément aléatoire de la liste (utile par exemple pour assigner un spawn random)
-   % In : la liste
-   fun {AssignRandom Liste}
-      N
-   in
-      N = {List.length Liste}
-      {List.nth Liste ({OS.rand} mod N)+1}
-   end
-
-
+   % Fonction qui décrémente
       %Record rec(inactive: active:)
       %Si on lui donne Id1#3 Id2#1 Id3#2
       %Il retourne rec(inactive: Id1#2 Id3#1 active:Id2#pt(x: y:))
-      fun{DecListGhost L Rec}
-         case L of Id#Time|T then
-            if Time == 1 then
-      	 local Port IdCheck PCheck in
-      	    Port ={List.nth PortsGhost Id.id}
-      	    {Send Port spawn(IdCheck PCheck)}
-      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck  le $ ne fonctionne pas dans ce cas la
-      	    {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
-      	    {Send WindowPort spawnGhost(IdCheck PCheck)}
-
-      	    {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
-      	 end
-            else {DecListGhost T {Recod.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
-            end
-         []nil then Rec
-         end
+   fun{DecListGhost L Rec}
+      case L of Id#Time|T then
+   	 if Time == 1 then
+   	    local Port IdCheck PCheck in
+   	       Port ={List.nth PortsGhost Id.id}
+   	       {Send Port spawn(IdCheck PCheck)}
+      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
+	       % le $ ne fonctionne pas dans ce cas la
+   	       {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
+   	       {Send WindowPort spawnGhost(IdCheck PCheck)}
+   	       {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+   	    end
+   	 else {DecListGhost T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+   	 end
+      []nil then Rec
       end
+   end
 
       %Meme principe que decListGhost
-      fun{DecListPacman L Rec}
-         case L of Id#Time|T then
-            if Time == 1 then
-      	 local Port IdCheck PCheck in
-      	    Port ={List.nth PortsPacman Id.id}
-      	    {Send Port spawn(IdCheck PCheck)}
-      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck  le $ ne fonctionne pas dans ce cas la
-      	    {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
-      	    {Send WindowPort spawnPacman(IdCheck PCheck)}
-
-      	    {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
-      	 end
-            else {DecListPacman T {Recod.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
-            end
-         []nil then Rec
-         end
+   fun{DecListPacman L Rec}
+      case L of Id#Time|T then
+   	 if Time == 1 then
+   	    local Port IdCheck PCheck in
+   	       Port ={List.nth PortsPacman Id.id}
+   	       {Send Port spawn(IdCheck PCheck)}
+      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
+	       % le $ ne fonctionne pas dans ce cas la
+   	       {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+   	       {Send WindowPort spawnPacman(IdCheck PCheck)}
+   	       {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+   	    end
+   	 else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+   	 end
+      []nil then Rec
       end
+   end
 
       %L = [pt1#1 pt2#5]
       %retourne rec(inactive:[pt2#4] active:[pt1])
-      fun{BonusDec L P Rec} %Teste individuellement ca fonctionne
-         case L of Pos#Time|T then
-            if Time == 1 then {P Pos} {BonusDec T P {Record.adjoinAt Rec active Pos|Rec.active}}
-            else {BonusDec T P {Record.adjoinAt Rec inactive Pos#Time-1|Rec.inactive}}
-            end
-         []nil then Rec
-         end
+   fun{BonusDec L P Rec} %Teste individuellement ca fonctionne
+      case L of Pos#Time|T then
+   	 if Time == 1 then {P Pos} {BonusDec T P {Record.adjoinAt Rec active Pos|Rec.active}}
+   	 else {BonusDec T P {Record.adjoinAt Rec inactive Pos#Time-1|Rec.inactive}}
+   	 end
+      []nil then Rec
       end
+   end
 
 
    /* state(who:QuiVAJouer posP: PositionDesPacmans posG: PositionGhost posB:Listepositiondesbonus posP:Listepositionpoints mode: Mode(0=normal 1 =hunt) huntTime:(-1 -> on fait rien, 0 on swich mode vers normal, X = nb de tours restants) pacTime: (liste de pt + nombre de tours) gTime: pointTime: bTime:)
@@ -272,51 +252,89 @@ end
    fun{Play State}
       local State1 State2 in
          %Verification HuntTime
-         case State.huntTime of 1 then
-   	 {Diffusion PortsPacman setMode(classic)}
-   	 {Send WindowPort setMode(classic)}
-   	 {Diffusion PortsGhost setMode(classic)}
-   	 State1 = {AdjoinList State [huntTime#0 mode#0]}
-         [] 0 then
-   	 State1 = {AdjoinList State [huntTime#0 mode#0]}
-         else
-   	 State1 = {AdjoinList State [huntTime#State.huntTime-1 mode#1]}
-         end
+   	 case State.huntTime of 1 then
+   	    {Diffusion PortsPacman setMode(classic)}
+   	    {Send WindowPort setMode(classic)}
+   	    {Diffusion PortsGhost setMode(classic)}
+   	    State1 = {AdjoinList State [huntTime#0 mode#0]}
+   	 [] 0 then
+   	    State1 = {AdjoinList State [huntTime#0 mode#0]}
+   	 else
+   	    State1 = {AdjoinList State [huntTime#State.huntTime-1 mode#1]}
+   	 end
          %Décremente pacTime - gTime - bonus et point.
-         local PacRecord GRecord BTimeProc BRecord PointTimeProc PRecord in
+   	 local PacRecord GRecord BTimeProc BRecord PointTimeProc PRecord in
 
-   	 PacRecord = {DecListPacman State1.pacTime rec(active:nil inactive:nil)}
+   	    PacRecord = {DecListPacman State1.pacTime rec(active:nil inactive:nil)}
 
-   	 GRecord = {DecListGhost State1.gTime GTimeProc rec(active:nil inactive:nil)}
+   	    GRecord = {DecListGhost State1.gTime GTimeProc rec(active:nil inactive:nil)}
 
-   	 proc{BTimeProc Pos}
-   	    {Diffusion PortsPacman bonusSpawn(Pos)}
-   	    {Send WindowPort spawnBonus(P)}
+   	    proc{BTimeProc Pos}
+   	       {Diffusion PortsPacman bonusSpawn(Pos)}
+   	       {Send WindowPort spawnBonus(P)}
+   	    end
+   	    BRecord = {BonusDec State.bTime BTimeProc rec(active:nil inactive:nil)}
+
+   	    proc{PointTimeProc Pos}
+   	       {Diffusion PortsPacman pointSpawn(Pos)}
+   	       {Send WindowPort spawnPoint(P)}
+   	    end
+   	    PRecord = {BonusDec State.pointTime PointTimeProc rec(active:nil inactive:nil)}
+
+
+   	    State2 = {AdjoinList State1 [posP#{List.append PacRecord.active State1.posP} posG#{List.append GRecord.active State1.posG} posB#{List.append BRecord.active State1.posB} posP#{List.append PRecord.active State1.posP} pacTime#PacRecord.inactive gTime#GRecord.inactive pointTime#PRecord.inactive bTime#BRecord.inactive]}
    	 end
-   	 BRecord = {BonusDec State.bTime BTimeProc rec(active:nil inactive:nil)}
-
-   	 proc{PointTimeProc Pos}
-   	    {Diffusion PortsPacman pointSpawn(Pos)}
-   	    {Send WindowPort spawnPoint(P)}
-   	 end
-   	 PRecord = {BonusDec State.pointTime PointTimeProc rec(active:nil inactive:nil)}
-
-
-   	 State2 = {AdjoinList State1 [posP#{List.append PacRecord.active State1.posP} posG#{List.append GRecord.active State1.posG} posB#{List.append BRecord.active State1.posB} posP#{List.append PRecord.active State1.posP} pacTime#PacRecord.inactive gTime#GRecord.inactive pointTime#PRecord.inactive bTime#BRecord.inactive]}
-         end
 
          %Separer en fonction pacman ou ghost
          %Move ...
-         case {List.nth Sequence State2.who} of pacman(id:Id color:_ name:_) %_ pour dire qu'on ne veux pas stocker Color
+   	 case {List.nth Sequence State2.who} of pacman(id:Id color:_ name:_) %_ pour dire qu'on ne veux pas stocker Color
    	 %TODO
-         []ghost(id:Id color:_ name:_)
+   	 []ghost(id:Id color:_ name:_)
    	 %Todo
-         end %End case pacman/ghost
+   	 end %End case pacman/ghost
       end%endlocal
    end%end Play
 
+   % testé séparément
+   fun {Mult E Max}
+      if Max==0 then nil
+      else
+	 E|{Mult E Max-1}
+      end
+   end
 
+   % testé séparément
+   fun {InitSList L Max Acc}
+      case L
+      of H|T then
+	 {InitSList T Max {Append Acc {Mult H Max}}}
+      [] nil then Acc
+      end
+   end
 
+   % testé séparément
+   fun {Remove List E}
+      case List
+      of H|T then
+	 if H == E then T
+	 else
+	    H|{Remove T E}
+	 end
+      end
+   end
+
+   % testé séparément
+   fun {AssignRandomSpawn SList M}
+      if M == 0 then nil
+      else 
+	 local E L N in
+	    N = {List.length SList}
+	    E = {List.nth SList ({OS.rand} mod N)+1}
+	    E|{AssignRandomSpawn {Remove SList E} M-1}
+	 end
+      end
+   end
+    
    thread
       % Create port for window
       WindowPort = {GUI.portWindow}
@@ -338,63 +356,85 @@ end
       GSList = MapRecord.4 % ghost spawn list
       BonusList = MapRecord.5
 
+      % Assignation des spawns pour les pacmans et ghosts
+      local N M in
+	 N = {List.length PSList}
+	 M = Input.nbPacman
+	 if M mod N == 0 then
+	    PSList2 = {InitSList PSList (M div N) nil}
+	    ListSpawnPacman = {AssignRandomSpawn PSList2 M}
+	 else
+	    PSList2 = {InitSList PSList (M div N)+1 nil}
+	    ListSpawnPacman = {AssignRandomSpawn PSList2 M}
+	 end
+      end
+
+      local N M in
+	 N = {List.length GSList}
+	 M = Input.nbGhost
+	 if M mod N == 0 then
+	    GSList2 = {InitSList GSList (M div N) nil}
+	    ListSpawnGhost = {AssignRandomSpawn GSList2 M}
+	 else
+	    GSList2 = {InitSList GSList (M div N)+1 nil}
+	    ListSpawnGhost = {AssignRandomSpawn GSList2 M}
+	 end
+      end
+
       % Initialisation des pacmans et ghosts
       % Initialisation des spawns pour les pacmans et les ghosts
       % Affichage des pacmans et des ghosts
 
-
-
       if {List.length PortsPacman} > 1 then
-
-      for X in PortsPacman do
-   	    local R ID P S in
-   	       {Send X getId(R)}
-   	       {Send WindowPort initPacman(R)}
-   	       S = {AssignRandom PSList} % position d'un Spawn aléatoire
-   	       % TODO : verifier qu'on ne dépasse pas la limite de pacmans/ghosts par spawns
-   	       {Send X assignSpawn(S)}
-   	       {Send X spawn(ID P)}
-   	       if ID== null then {Browse 'erreur spawn pacman'} end % TODO : vérifier si null = nil?
-   	       {Send WindowPort spawnPacman(R S)}
-   	    end
-         end
+	 for I in 1..{List.length PortsPacman} do
+	    local R ID P S Port in
+	       Port = {List.nth PortsPacman I}
+	       {Send Port getId(R)}
+	       {Send WindowPort initPacman(R)}
+	       S = {List.nth ListSpawnPacman I}
+	       {Send Port assignSpawn(S)}
+	       {Send Port spawn(ID P)} % verifier valeurs?
+	       {Send WindowPort spawnPacman(R S)}
+	       {Diffusion PortsGhost pacmanPos(R S)} % Diffusion du spawn aux ghosts
+	    end
+	 end
       else
-      local ID P S in
-   	    {Send WindowPort initPacman(IdPacman.1)}
-   	    S = {AssignRandom PSList}
-   	    {Send PortsPacman.1 assignSpawn(S)} % Comment savoir sur quels points on peux spawn ?
-   	    {Send PortsPacman.1 spawn(ID P)}
-   	    {Send WindowPort spawnPacman(IdPacman.1 S)}
-   	 end %TODO Verifier les valeurs ID et P
+	 local ID P S in % vérifier qu'il y a toujours au minimum un spawn possible?
+	    {Send WindowPort initPacman(IdPacman.1)}
+	    S = {List.nth PSList ({OS.rand} mod {List.length PSList})+1}
+	    {Send PortsPacman.1 assignSpawn(S)}
+	    {Send PortsPacman.1 spawn(ID P)}
+	    {Send WindowPort spawnPacman(IdPacman.1 S)}
+	    {Diffusion PortsGhost pacmanPos(IdPacman.1 S)} % Diffusion du spawn aux ghosts
+	 end %TODO Verifier les valeurs ID et P
       end
-
-
 
       if ({List.length PortsGhost} > 1) then
-         for Y in PortsGhost do
-         local R ID P S in
-   	       {Send Y getId(R)}
+	 for I in 1..{List.length PortsGhost} do
+	    local R ID P S Port in
+	       Port = {List.nth PortsGhost I}
+	       {Send Port getId(R)}
    	       {Send WindowPort initGhost(R)}
-   	       S = {AssignRandom GSList} % TODO : verifier qu'on ne dépasse pas la limite de pacmans/ghosts par spawns
-   	       {Send Y assignSpawn(S)}
-   	       {Send Y spawn(ID P)}
-   	       {Send WindowPort spawnGhost(R S)}
-   	       %TODO Verifier les valeurs ID et P
-
-            end
-         end
+   	       S = {List.nth ListSpawnGhost I} 
+   	       {Send Port assignSpawn(S)}
+   	       {Send Port spawn(ID P)} % TODO : vérifier les valeurs ID et P
+	       {Send WindowPort spawnGhost(R S)}
+	       {Diffusion PortsPacman ghostPos(R S)} % Diffusion du spawn aux pacmans
+	    end
+	 end
       else
-      local ID P S in
-	 {Send WindowPort initGhost(IdGhost.1)}
-	 S = {AssignRandom GSList}
-         {Send PortsGhost.1 assignSpawn(S)}
-	 {Send PortsGhost.1 spawn(ID P)}
-	 {Send WindowPort spawnGhost(IdGhost.1 S)}
+	 local ID P S in
+	    {Send WindowPort initGhost(IdGhost.1)}
+	    S = {List.nth ListSpawnGhost}
+	    {Send PortsGhost.1 assignSpawn(S)}
+	    {Send PortsGhost.1 spawn(ID P)}
+	    {Send WindowPort spawnGhost(IdGhost.1 S)}
+	    {Diffusion PortsPacman ghostPos(IdGhost.1 S)} % Diffusion du spawn aux pacmans
          end
       end
 
 
-
+	 
 %Une fonction que l'on appelle récursivement.
 %     Prends en argument un state et retourne un state.
 %     Le record state contiendrait:
