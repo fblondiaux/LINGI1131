@@ -26,6 +26,9 @@ define
    Shuffle
    ListMap
    AssignRandomSpawn
+   DecListPacman
+   DecListGhost
+   BonusDec
 
 
 
@@ -210,29 +213,108 @@ end
       {List.nth Liste ({OS.rand} mod N)+1}
    end
 
-  /* state(who:QuiVAJouer posP: PositionDesPacmans posG: PositionGhost posB:Listepositiondesbonus posP:Listepositionpoints mode: Mode(0=normal 1 =hunt) huntTime:(-1 -> on fait rien, 0 on swich mode vers normal, X = nb de tours restants) pacTime: (liste de pt + nombre de tours) gTime: pointTime: bTime:)
 
-fun{Play State}
-   local State1 State2 State in
-      %Verification HuntTime
-      case State.huntTime of 0 then
-	 State1 = {AdjoinList State [huntTime#~1 mode#0]}
-      [] -1 then
-	  State1 = {AdjoinList State [huntTime#~1 mode#0]}
-      else
-	  State1 = {AdjoinList State [huntTime#State.huntTime-1 mode#1]}
+      %Record rec(inactive: active:)
+      %Si on lui donne Id1#3 Id2#1 Id3#2
+      %Il retourne rec(inactive: Id1#2 Id3#1 active:Id2#pt(x: y:))
+      fun{DecListGhost L Rec}
+         case L of Id#Time|T then
+            if Time == 1 then
+      	 local Port IdCheck PCheck in
+      	    Port ={List.nth PortsGhost Id.id}
+      	    {Send Port spawn(IdCheck PCheck)}
+      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck  le $ ne fonctionne pas dans ce cas la
+      	    {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
+      	    {Send WindowPort spawnGhost(IdCheck PCheck)}
+
+      	    {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+      	 end
+            else {DecListGhost T {Recod.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+            end
+         []nil then Rec
+         end
+      end
+
+      %Meme principe que decListGhost
+      fun{DecListPacman L Rec}
+         case L of Id#Time|T then
+            if Time == 1 then
+      	 local Port IdCheck PCheck in
+      	    Port ={List.nth PortsPacman Id.id}
+      	    {Send Port spawn(IdCheck PCheck)}
+      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck  le $ ne fonctionne pas dans ce cas la
+      	    {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+      	    {Send WindowPort spawnPacman(IdCheck PCheck)}
+
+      	    {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+      	 end
+            else {DecListPacman T {Recod.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+            end
+         []nil then Rec
+         end
+      end
+
+      %L = [pt1#1 pt2#5]
+      %retourne rec(inactive:[pt2#4] active:[pt1])
+      fun{BonusDec L P Rec} %Teste individuellement ca fonctionne
+         case L of Pos#Time|T then
+            if Time == 1 then {P Pos} {BonusDec T P {Record.adjoinAt Rec active Pos|Rec.active}}
+            else {BonusDec T P {Record.adjoinAt Rec inactive Pos#Time-1|Rec.inactive}}
+            end
+         []nil then Rec
+         end
       end
 
 
-      case State1.pacTime of H|T then
+   /* state(who:QuiVAJouer posP: PositionDesPacmans posG: PositionGhost posB:Listepositiondesbonus posP:Listepositionpoints mode: Mode(0=normal 1 =hunt) huntTime:(-1 -> on fait rien, 0 on swich mode vers normal, X = nb de tours restants) pacTime: (liste de pt + nombre de tours) gTime: pointTime: bTime:)
+   */
+
+   fun{Play State}
+      local State1 State2 in
+         %Verification HuntTime
+         case State.huntTime of 1 then
+   	 {Diffusion PortsPacman setMode(classic)}
+   	 {Send WindowPort setMode(classic)}
+   	 {Diffusion PortsGhost setMode(classic)}
+   	 State1 = {AdjoinList State [huntTime#0 mode#0]}
+         [] 0 then
+   	 State1 = {AdjoinList State [huntTime#0 mode#0]}
+         else
+   	 State1 = {AdjoinList State [huntTime#State.huntTime-1 mode#1]}
+         end
+         %Décremente pacTime - gTime - bonus et point.
+         local PacRecord GRecord BTimeProc BRecord PointTimeProc PRecord in
+
+   	 PacRecord = {DecListPacman State1.pacTime rec(active:nil inactive:nil)}
+
+   	 GRecord = {DecListGhost State1.gTime GTimeProc rec(active:nil inactive:nil)}
+
+   	 proc{BTimeProc Pos}
+   	    {Diffusion PortsPacman bonusSpawn(Pos)}
+   	    {Send WindowPort spawnBonus(P)}
+   	 end
+   	 BRecord = {BonusDec State.bTime BTimeProc rec(active:nil inactive:nil)}
+
+   	 proc{PointTimeProc Pos}
+   	    {Diffusion PortsPacman pointSpawn(Pos)}
+   	    {Send WindowPort spawnPoint(P)}
+   	 end
+   	 PRecord = {BonusDec State.pointTime PointTimeProc rec(active:nil inactive:nil)}
 
 
+   	 State2 = {AdjoinList State1 [posP#{List.append PacRecord.active State1.posP} posG#{List.append GRecord.active State1.posG} posB#{List.append BRecord.active State1.posB} posP#{List.append PRecord.active State1.posP} pacTime#PacRecord.inactive gTime#GRecord.inactive pointTime#PRecord.inactive bTime#BRecord.inactive]}
+         end
 
+         %Separer en fonction pacman ou ghost
+         %Move ...
+         case {List.nth Sequence State2.who} of pacman(id:Id color:_ name:_) %_ pour dire qu'on ne veux pas stocker Color
+   	 %TODO
+         []ghost(id:Id color:_ name:_)
+   	 %Todo
+         end %End case pacman/ghost
+      end%endlocal
+   end%end Play
 
-   end%endlocal
-end%end Play
-
-*/
 
 
    thread
@@ -322,20 +404,19 @@ end%end Play
 %         %Liste avec les positions des  bonus
 %         %Liste avec les positions des points
 %         %Mode du jeu
-%         %Un champ que l'on décrémente avec le hunt time. Quand il vaut 0 -> le mode est mis à normal et on passe la valeur à -1 pour dire qu'il ne faut rien faire.
+%         %Un champ que l'on décrémente avec le hunt time. Quand il vaut 1-> le mode est mis à normal et on passe la valeur à 0 pour dire qu'il ne faut rien faire.
 %         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimePoint (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
 %         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimeBonus (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
-%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimePacman (Quand il vaut -1 -> On ne fait rien, Quand un pacman meurt on le met à respawnTimePacman et on décrémente quand c'est égal à 0 on respawn le pacman.)
-%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimeGhost (Quand il vaut -1 -> On ne fait rien, Quand un pacman meurt on le met à respawnTimeGhost et on décrémente quand c'est égal à 0 on respawn le pacman.)
-%
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimePacman (Quand un pacman meurt on le met à respawnTimePacman et on décrémente quand c'est égal à 2 on respawn le pacman.)
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimeGhost
 %     Etapes de cette fonction.
 %       %
 %       %Décrementer ce qui doit l'etre (respawnTime...(5)
 %              %Si certaines valeurs sont arrivée au bout -> faire les actions correspondante
 %              %Quand un pacman(resussite) de respawnTimePacman arrive à 0 -> (ressusite) spawn(?ID ?P) + (Ghosts) PacmanPos() +GUI spawnPacman(ID P)
 %              %Quand un ghost(resussite) de respawnTimePacman arrive à 0 -> (ressusite) spawn(?ID ?P) + (PacmanS) PacmanPos() +GUI spawnGhost(ID P)
-%              %Quand le respawnTimeBonus arrive à échéance -> on random une position libre pour le bonus. (Pacmans) bonusSpawn(P) + GUI initBonus + GUI spawnBonus
-%              %Quand le respawnTimePoint arrive à échéance -> on random une position libre pour le point. (Pacmans) pointSpawn(P) + GUI initPoint(P) + GUI spawnPoint(P)
+%              %Quand le respawnTimeBonus arrive à échéance -> (Pacmans) bonusSpawn(P) + GUI spawnBonus
+%              %Quand le respawnTimePoint arrive à échéance -> on random une position libre pour le point. (Pacmans) pointSpawn(P)+ GUI spawnPoint(P)
 %              %Quand le huntTime arrive à échéance -> Tous( GUI + Pacmans + GhostS) setMode(Normal)
 %       %__________________________
 %       %Si le joueur est un pacman
