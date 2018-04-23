@@ -52,12 +52,12 @@ in
    %TODO = Name can be a different List - It can be funny names, we should decide if we change that.
    fun{CreatePortPacman}
       fun{CreatePortPacmanFull Pacman Color Name ID}
-	 case Pacman of _|_ then
+	     case Pacman of _|_ then
 	    {PlayerManager.playerGenerator Pacman.1 pacman(id:ID color:Color.1 name:Name.1)}|{CreatePortPacmanFull Pacman.2 Color.2 Name.2 ID+1}
-	 []nil then nil
-	 end
+	     []nil then nil
+	     end
       end
-   in
+       in
       {CreatePortPacmanFull Input.pacman Input.colorPacman Input.pacman 1}
    end
 
@@ -67,27 +67,27 @@ in
    %Out: Returns a list of all the ports.
    %We assume that Pacman Color and Name contains the same number of elements.
    %TODO = Name can be a different List - It can be funny names, we should decide if we're gonna change that.
-   fun{CreatePortGhost}
-      fun{CreatePortGhostFull Ghost Color Name ID}
-	 case Ghost of _|_ then {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
-	 []nil then nil
-	 end
-      end
-   in
-      {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
-   end
+    fun{CreatePortGhost}
+        fun{CreatePortGhostFull Ghost Color Name ID}
+            case Ghost of _|_ then {PlayerManager.playerGenerator Ghost.1 ghost(id:ID color:Color.1 name:Name.1)}|{CreatePortGhostFull Ghost.2 Color.2 Name.2 ID+1}
+	        []nil then nil
+	        end
+        end
+        in
+        {CreatePortGhostFull Input.ghost Input.colorGhost Input.ghost 1}
+    end
 
    %Function who transform a list of Ports into a list of <pacman ID>
    %In: List of Ports
    %Out: List of IDs
    fun{CreateIDs PortList}
-      case PortList of H|T then
-	 local R in
+         case PortList of H|T then
+	    local R in
 	    {Send H getId(R)}
 	    R|{CreateIDs T}
-	 end
-      []nil then nil
-      end
+	    end
+        []nil then nil
+        end
    end
 
    %Append the two lists and then shuffle the result
@@ -115,9 +115,9 @@ in
    */
    proc {Diffusion PortsList Message}
       case PortsList
-      of H|T then
-	 {Send H Message}
-	 {Diffusion T Message}
+        of H|T then
+	   {Send H Message}
+	   {Diffusion T Message}
       [] nil then skip
       end
    end
@@ -128,8 +128,8 @@ in
    %Bonus and points are now visible on the map. Spawn have been created (but not assigned to a pacman/ghost 
    fun {ListMap PortsPacman}
       fun {ReadMap Row Column Rec}
-	 if (Row > (Input.nRow)) then Rec
-	 else
+	   if (Row > (Input.nRow)) then Rec
+	   else
 	    local Temp in
 	       Temp = {List.nth Input.map Row}
 	       case {List.nth Temp Column} % element a la rangee Row et a la colonne Column
@@ -186,70 +186,18 @@ in
 		  end
 	       end
 	    end
-	 end
+	   end
       end
-   in
+      in
       {ReadMap 1 1 ptlist(pl:nil wl:nil psl:nil gsl:nil bl:nil)} %pl = point list, wl = wall list psl = pacman spawn list,
           %gsl = ghost spawn list, bl = bonus list.
-   end
-
-   % Fonction qui décrémente
-      %Record rec(inactive: active:)
-      %Si on lui donne Id1#3 Id2#1 Id3#2
-      %Il retourne rec(inactive: Id1#2 Id3#1 active:Id2#pt(x: y:))
-   fun{DecListGhost L Rec}
-      case L of Id#Time|T then
-   	 if Time == 1 then
-   	    local Port IdCheck PCheck in
-   	       Port ={List.nth PortsGhost Id.id}
-   	       {Send Port spawn(IdCheck PCheck)}
-      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
-	       % le $ ne fonctionne pas dans ce cas la
-   	       {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
-   	       {Send WindowPort spawnGhost(IdCheck PCheck)}
-   	       {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
-   	    end
-   	 else {DecListGhost T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
-   	 end
-      []nil then Rec
-      end
-   end
-
-      %Meme principe que decListGhost
-   fun{DecListPacman L Rec}
-      case L of Id#Time|T then
-   	 if Time == 1 then
-   	    local Port IdCheck PCheck in
-   	       Port ={List.nth PortsPacman Id.id}
-   	       {Send Port spawn(IdCheck PCheck)}
-      	       %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
-	       % le $ ne fonctionne pas dans ce cas la
-   	       {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
-   	       {Send WindowPort spawnPacman(IdCheck PCheck)}
-   	       {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
-   	    end
-   	 else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
-   	 end
-      []nil then Rec
-      end
-   end
-
-      %L = [pt1#1 pt2#5]
-      %retourne rec(inactive:[pt2#4] active:[pt1])
-   fun{BonusDec L P Rec} %Teste individuellement ca fonctionne
-      case L of Pos#Time|T then
-   	 if Time == 1 then {P Pos} {BonusDec T P {Record.adjoinAt Rec active Pos|Rec.active}}
-   	 else {BonusDec T P {Record.adjoinAt Rec inactive Pos#Time-1|Rec.inactive}}
-   	 end
-      []nil then Rec
-      end
    end
 
    % testé séparément
    fun {Mult E Max}
       if Max==0 then nil
       else
-	 E|{Mult E Max-1}
+	   E|{Mult E Max-1}
       end
    end
 
@@ -257,7 +205,7 @@ in
    fun {InitSList L Max Acc}
       case L
       of H|T then
-	 {InitSList T Max {Append Acc {Mult H Max}}}
+	   {InitSList T Max {Append Acc {Mult H Max}}}
       [] nil then Acc
       end
    end
@@ -266,10 +214,10 @@ in
    fun {Remove List E}
       case List
       of H|T then
-	 if H == E then T
-	 else
+	   if H == E then T
+	    else
 	    H|{Remove T E}
-	 end
+	   end
       end
    end
 
@@ -277,11 +225,11 @@ in
    fun {AssignRandomSpawn SList M}
       if M == 0 then nil
       else 
-	 local E L N in
+	   local E L N in
 	    N = {List.length SList}
 	    E = {List.nth SList ({OS.rand} mod N)+1}
 	    E|{AssignRandomSpawn {Remove SList E} M-1} %        {List.subtract +Xs Y ?Zs} 
-	 end
+	   end
       end
    end
 
@@ -290,13 +238,95 @@ in
    fun {Delete Id posPlayer}
       case posPlayer
       of (ID#Pos)|T then
-	 case ID
-	 of Id then T
-	 [] nil then nil % on ne devrait pas tomber dedans si le pacman était bien dans la liste
-	 else (ID#Pos)|{DeletePac Id T}
-	 end
+	   case ID
+	   of Id then T
+	   [] nil then nil % on ne devrait pas tomber dedans si le pacman était bien dans la liste
+	   else (ID#Pos)|{DeletePac Id T}
+	   end
       end
    end
+   
+      % Fonction qui décrémente
+      %Record rec(inactive: active:)
+      %Si on lui donne Id1#3 Id2#1 Id3#2
+      %Il retourne rec(inactive: Id1#2 Id3#1 active:Id2#pt(x: y:))
+    fun{DecGhost State}
+         Rec
+         fun{DecListGhost L Rec}
+            case L of Id#Time|T then
+         local Port IdCheck PCheck in
+            if Time == 1 then
+            
+               Port ={List.nth PortsGhost Id.id}
+               {Send Port spawn(IdCheck PCheck)}
+                     %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
+                 % le $ ne fonctionne pas dans ce cas la
+               {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
+               {Send WindowPort spawnGhost(IdCheck PCheck)}
+               {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+            
+            else {DecListGhost T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+            end
+         end
+            []nil then Rec
+            end
+         end
+    in
+         Rec = {DecListGhost State.gT rec(active:nil inactive:nil)}
+         {AdjoinList State [posG#{List.append Rec.active State.posG}  gT#Rec.inactive]}
+    end
+
+    fun{DecPacman State}
+         Rec
+         fun{DecListPacman L Rec}
+            case L of Id#Time|T then
+            
+         local Port IdCheck PCheck in
+            if Time == 1 then
+               Port ={List.nth PortsPacman Id.id}
+               {Send Port spawn(IdCheck PCheck)}
+               {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+               {Send WindowPort spawnPacman(IdCheck PCheck)}
+               {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+              
+            else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+            end
+         end
+            []nil then Rec
+            end
+         end
+    in
+         Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
+         {AdjoinList State [posP#{List.append Rec.active State.posP} pacTime#Rec.inactive]}   
+    end
+
+     %L = [pt1#1 pt2#5]
+     %retourne rec(inactive:[pt2#4] active:[pt1])
+    fun{BonusDec L P Rec} 
+       case L of Pos#Time|T then
+          if Time == 1 then {P Pos} {BonusDec T P {Record.adjoinAt Rec active Pos|Rec.active}}
+          else {BonusDec T P {Record.adjoinAt Rec inactive Pos#Time-1|Rec.inactive}}
+          end
+       []nil then Rec
+       end
+    end
+
+    fun{DecPoint State}
+       Rec in
+       Rec = {BonusDec State.pT proc{$ Pos} {Diffusion PortsPacman pointSpawn(Pos)} {Send WindowPort spawnPoint(Pos)} end  rec(active:nil inactive:nil)}
+       {AdjoinList State [posP#{List.append Rec.active State.posP} pT#Rec.inactive]}
+    end
+
+    fun{DecBonus State}
+       Rec in
+       {BonusDec State.bT  proc{$ Pos} {Diffusion PortsPacman bonusSpawn(Pos)} {Send WindowPort spawnBonus(Pos)} end rec(active:nil inactive:nil)}
+       {AdjoinList State [posB#{List.append Rec.active State.posB} bT#Rec.inactive]}
+    end
+          
+
+
+
+
 	    
    % IdPacman : le <pacman> qui est mort
    % IdGhost : le <ghost> qui l'a tué
@@ -304,24 +334,24 @@ in
    % State =  state(posPac:PosPac posG:PosG posB:PosB pos:PosP m:Mode hT:HuntTime pacT:PacTime gT:GTime bT:BTime pT:PTime
    fun {KillPacman IdPacman IdGhost EndOfGame State}
       PortPac
-   in
+      in
       PortPac = {List.nth PortsPacman IdPacman}
       % prévenir le pacman qu'il a été tué
       local ID NewLife NewScore in
-	 {Send PortPac gotKilled(ID NewLife NewScore)}
-	 % prévénir tous les ghosts, avec un message différent pour celui qui a tué le pacman
-	 for P in PortsGhost do ID in
+	   {Send PortPac gotKilled(ID NewLife NewScore)}
+	   % prévénir tous les ghosts, avec un message différent pour celui qui a tué le pacman
+	   for P in PortsGhost do ID in
 	    {Send P getId(ID)}
 	    if ID == IdGhost then
 	       {Send P killPacman(IdPacman)}
 	    else
 	       {Send P deathPacman(IdPacman)}
 	    end
-	 end
-	 % prévenir GUI
-	 {Send WindowPort hidePacman(IdPacman)}
-	 {Send WindowPort scoreUpdate(IdPacman NewScore)}
-	 {Send WindowPort lifeUpdate(IdPacman NewLife)}
+      end
+	     % prévenir GUI
+	   {Send WindowPort hidePacman(IdPacman)}
+	   {Send WindowPort scoreUpdate(IdPacman NewScore)}
+	   {Send WindowPort lifeUpdate(IdPacman NewLife)}
       end
       % renvoi du State dans lequel on a retiré IdPacman de posPac et ajouté dans pacTime
       {AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#(State.pacT|(IdPacman#Input.respawnTimePacman))]}
@@ -330,14 +360,14 @@ in
    
    fun {KillGhost IdPacman ListGhosts State}
       PortGhost
-   in
+      in
       case ListGhosts
       of IdGhost|T then
-	 PortGhost = {List.nth PortsGhost IdGhost}
-	 % prévénir le ghost qu'il a été tué
-	 {Send PortGhost gotKilled()}
-	 % prévénir tous les pacmans, avec un message différent pour celui qui a tué le ghost
-	 local IDp NewScore in
+	   PortGhost = {List.nth PortsGhost IdGhost}
+	   % prévénir le ghost qu'il a été tué
+	   {Send PortGhost gotKilled()}
+	   % prévénir tous les pacmans, avec un message différent pour celui qui a tué le ghost
+	   local IDp NewScore in
 	    for P in PortsPacman do ID in
 	       {Send P getId(ID)}
 	       if ID == IdPacman then
@@ -349,28 +379,85 @@ in
 	    % prévénir GUI
 	    {Send WindowPort scoreUpdate(IDp NewScore)}
 	    {Send WindowPort hideGhost(IdGhost)}
-	 end
-	 % appel récursif avec le nouveau State (State dans lequel on a retiré IdGhost de posG et ajouté dans gT)
-	 {KillGhost IdPacman T
-	  {AdjoinList State [posG#{Delete IdGhost State.posG} gT#(State.gT|(IdGhost#Input.respawnTimeGhost))]}}
+	   end
+	   % appel récursif avec le nouveau State (State dans lequel on a retiré IdGhost de posG et ajouté dans gT)
+	     {KillGhost IdPacman T
+	    {AdjoinList State [posG#{Delete IdGhost State.posG} gT#(State.gT|(IdGhost#Input.respawnTimeGhost))]}}
       [] nil then State
       end
    end
+   /* La fonction prends un point en argument, si il y en à un dans le state, elle le retire et met dans la liste à décrémenter
+   si pas l'etat ne change pas et ret est bound à false */
+   fun{PointOn Pt Ret State}
+      if({List.member Pt State.posP}) then %Si p est dans la liste posP
+         Ret = Pt 
+         {AdjoinList State [posP#{List.subtract State.posP Pt} pt#{List.append State.pt [Pt]}]}
+      else 
+         Ret = false %Attention peutêtre à changer
+         State
+      end
+   end
+
+    /*Meme principe que pointOn */
+    fun{BonusOn Pt Ret State}
+       if({List.member Pt State.posB}) then %Si Pt est dans la liste posB
+          Ret = Pt  
+          {AdjoinList State [posB#{List.subtract State.posB Pt} bt#{List.append State.bt [Pt]}]}
+       else 
+          Ret = null %Attention peutêtre à changer
+          State
+       end
+    end
  
+    /* La fonction prend un point en arguement et retourne la liste des ghost sur cette case.
+    L'etat n'est pas modifié */
+    fun{GhostOn Pos Ret State} 
+       fun{GhostOnLoop Pos List}
+          case List of H|T then
+         if(H == Pos) then H|{GhostOnLoop Pos T}
+         else {GhostOnLoop Pos T}
+         end
+          []nil then nil
+          end
+       end
+    in 
+       Ret = {GhostOnLoop Pos State.posG}
+       State
+    end
+
+    /* Meme principe que GhostOn */
+    fun{PacmanOn Pos Ret State} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
+       fun{PacmanOnLoop Pos List}
+          case List of H|T then
+         if(H == Pos) then H|{PacmanOnLoop Pos T}
+         else {PacmanOnLoop Pos T}
+         end
+          []nil then nil
+          end
+       end
+    in 
+       Ret = {PacmanOnLoop Pos State.posPac}
+       State
+    end
+
+
    proc {ServerProc Msg State}
       case Msg 
-      of decrementer|T then {ServerProc T {Decrementer State}} %Flo
+      of decPacman|T then {ServerProc T {DecPacman State}} %Flo c'est fait
+      [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
+      [] decPoint|T then {ServerProc T {DecPoint State}}%Flo c'est fait
+      [] decBonus|T then {ServerProc T {DecBonus State}}%Flo c'est fait
       [] movePacman(Id ?NewPos)|T then {ServerProc T {MovePacman State}} %TODO %Noemie
       [] huntMode(Mode)|T then {ServerProc T {HuntMode State}} % Noémie (dit s'il est en mode hunt ou pas)
-      [] changeMode|T then {ServerProc T {ChangeMode State}} %Noemie
-      [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}}%Parcours posG, retourne une liste des <ghost> sur cette case.
+      %[] changeMode|T then {ServerProc T {ChangeMode State}} %Noemie Si je ne me trompe pas c'est pas d'actualité si ? 0 arguments ? 
+      [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}} % Flo c'est fait
+      [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn State}} % Flo c'est fait
       [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman IdPacman IdGhost ?endOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
-      [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn State}}
-      [] winPoint(Id Point)|T then {ServerProc T {WinPoint State}}
+      [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn State}} %Flo c'est fait
+      [] winPoint(Id Point)|T then {ServerProc T {WinPoint State}} 
+      [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn State}} %Flo c'est fait
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus State}}
-      [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn State}}
       [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost State}}
-      [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn State}}
       [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}
       end
    end
@@ -394,7 +481,7 @@ in
 			if(Mode == classic) then
 			   local List in
 			      {Send Server ghostOn(NewPos List)}
-			      if(List ~= nil) then
+			      if(List \= nil) then
 			      %Killer = take random de List.
 				 local endOfGame in
 				    {Send Server killPacman(Id /*IdGhost*/ endOfGame)}
@@ -416,16 +503,16 @@ in
 			end
 		     %Points et bonus
 			local Point in
-			   {Send Server pointOn(NewPos Point)}
+			   {Send Server pointOn(NewPos Point)} 
 			% PointOn : s'il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
-			   if Point ~= nil then %ou null ?
+			   if Point \= nil then %ou null ? Ou false verifier la valeur de retour !
 			      {Send Server winPoint(Id Point)} % Faire gager le point + prévenir les autre + update + aller voir commentaires
 			   end
 			end
 			local Bonus in
 			   {Send Send bonusOn(NewPos Bonus)}
 			% BonusOn : s'il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
-			   if Bonus ~= nil then %ou null ?
+			   if Bonus \= nil then %ou null ?
 			      {Send Server winBonus(Id Bonus)} % Faire gager le point + prévenir les autre + updateLaListeDesBonus + mode(hunt)
 			   % + remettre le temps a temps hunt + aller voir commentaires
 			   end
@@ -440,13 +527,13 @@ in
                % -> {Send Port move(IdCheck Pos)} Port = {List.nth PortsGhost Id}voir messages dans commentaires
 		% + Change l'etat -> liste des ghost s'actualise posG
                 %Case if IdCheck == null -> le ghost est mort -> on s'arrete la.
-		   if(NewPos ~= nil) then
+		   if(NewPos \= nil) then
 		      local Mode in
 			 {Send Server huntMode(Mode)}
 			 if (Mode==classic) then
 			    local List in
 			       {Send Server pacmanOn(NewPos List)}
-			       if(List ~= nil) then
+			       if(List \= nil) then
 				  local endOfGame in
 				     {Send Server  killPacman(Id List endOfGame)} %La meme qu'au dessus dans case pacman
 				     if(endOfGame) then
@@ -458,7 +545,7 @@ in
 			 else % Mode hunt
 			    local List in
 			       {Send Server pacmanOn(NewPos ?List)}
-			       if(List ~= nil) then
+			       if(List \= nil) then
 			       %-> Random dans la liste le tueur.
 				  {Send Server killGhost(IdPacman List)}%La meme qu'au dessus
 			       end

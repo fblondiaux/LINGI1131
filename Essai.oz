@@ -52,6 +52,7 @@ fun {ChangeMode State}
   end
 end
 */
+/*
 fun{PointOn Pt Ret State}
   if({List.member Pt State.posP}) then %Si p est dans la liste posP
     Ret = Pt  
@@ -75,6 +76,7 @@ fun{GhostOn Pos Ret State} %On ne retire pas les ghost de l'état, l'état n'est
   Ret = {GhostOnLoop Pos State.posG}
   State
 end
+
 
 fun{PacmanOn Pos Ret State} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
   fun{PacmanOnLoop Pos List}
@@ -101,7 +103,7 @@ fun{BonusOn Pt Ret State}
     State
   end
 end
-
+*/
 proc {ServerProc Msg State}
    case Msg 
    of decrementer|T then {ServerProc T {Decrementer State}} %Flo
