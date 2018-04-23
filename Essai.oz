@@ -34,12 +34,19 @@ in
    Port
 end
 
+fun {ChangeMode State}
+  if(State.mode == classic) then
+  {AdjoinList State [ mode#hunt]}
+  else
+  {AdjoinList State [ mode#hunt]}
+  end
+end
 
 proc {ServerProc Msg State}
    case Msg 
    of decrementer|T then {ServerProc T {Decrementer State}} %Flo
    [] movePacman(Id ?NewPos)|T then %TODO %Noemie
-   [] changeMode|T then {ServerProc T {ChangeMode State}} %Noemie
+   [] changeMode|T then {ServerProc T {ChangeMode State}} %Flo
    [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}}%Parcours posG, retourne une liste des <ghost> sur cette case.
    [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
    [] pointOn(pt ?pt)|T then {ServerProc T {PointOn State}}
