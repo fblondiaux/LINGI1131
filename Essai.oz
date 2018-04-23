@@ -42,6 +42,14 @@ fun {ChangeMode State}
   end
 end
 
+fun{PointOn Pt Ret State}
+  if({List.member Pt Ret}) then 
+    Ret = Pt  
+    {AdjointList State []}
+  else 
+  end
+end
+
 proc {ServerProc Msg State}
    case Msg 
    of decrementer|T then {ServerProc T {Decrementer State}} %Flo
@@ -49,7 +57,7 @@ proc {ServerProc Msg State}
    [] changeMode|T then {ServerProc T {ChangeMode State}} %Flo
    [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}}%Parcours posG, retourne une liste des <ghost> sur cette case.
    [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
-   [] pointOn(pt ?pt)|T then {ServerProc T {PointOn State}}
+   [] pointOn(Pt ?Ret)|T then {ServerProc T {PointOn pt ?pt State}}
    [] winPoint(Id pt)|T then {ServerProc T {WinPoint State}}
    [] winBonus(Id pt)|T then {ServerProc T {WinBonus State}}
    [] bonusOn(pt ?pt)|T then {ServerProc T {BonusOn State}}
