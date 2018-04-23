@@ -27,7 +27,7 @@ in
    {NewPort Stream Port}
    thread
 						       <position>|<position>	 un nombre		   <ghost>#<Nombre>|...
-       {ServerProc Stream state(posPac:PosPac posG:PosG posB:PosB pos:PosP m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)
+       {ServerProc Stream state(posPac:PosPac posG:PosG posB:PosB posP:PosP m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)
 				Id#pt()|T    <Ghost>#<position>|...       classic ou hunt    <pacman>#<Nombre>|..   <position>#<Nombre>|...
 		%On dec que si plus grand que 1 huntime
    end
@@ -36,34 +36,46 @@ end
 
 fun {ChangeMode State}
   if(State.mode == classic) then
-  {AdjoinList State [ mode#hunt]}
+  {AdjoinList State [mode#hunt ht#Input.huntTime]}
   else
-  {AdjoinList State [ mode#hunt]}
+  {AdjoinList State [mode#classic]}
   end
 end
 
 fun{PointOn Pt Ret State}
-  if({List.member Pt Ret}) then 
+  if({List.member Pt State.posP}) then %Si p est dans la liste posP
     Ret = Pt  
-    {AdjointList State []}
+    {AdjointList State [posP#{List.subtract State.posP Pt} pt#{List.append State.pt [Pt]]}
   else 
+    Ret = null %Attention peutêtre à changer
+    State
+  end
+end
+
+fun{BonusOn Pt Ret State}
+  if({List.member Pt State.posB}) then %Si p est dans la liste posP
+    Ret = Pt  
+    {AdjointList State [posB#{List.subtract State.posB Pt} bt#{List.append State.bt [Pt]]}
+  else 
+    Ret = null %Attention peutêtre à changer
+    State
   end
 end
 
 proc {ServerProc Msg State}
    case Msg 
    of decrementer|T then {ServerProc T {Decrementer State}} %Flo
-   [] movePacman(Id ?NewPos)|T then %TODO %Noemie
-   [] changeMode|T then {ServerProc T {ChangeMode State}} %Flo
+   [] movePacman(Id ?NewPos)|T then %TODO %Flo
+   [] changeMode|T then {ServerProc T {ChangeMode State}} %Flo A verifier il doit surement y avoir un argument
    [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}}%Parcours posG, retourne une liste des <ghost> sur cette case.
    [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
-   [] pointOn(Pt ?Ret)|T then {ServerProc T {PointOn pt ?pt State}}
-   [] winPoint(Id pt)|T then {ServerProc T {WinPoint State}}
-   [] winBonus(Id pt)|T then {ServerProc T {WinBonus State}}
-   [] bonusOn(pt ?pt)|T then {ServerProc T {BonusOn State}}
+   [] pointOn(Pt ?Ret)|T then {ServerProc T {PointOn Pt ?Ret State}} %Flo - C'est fait
+   [] winPoint(Id Pt)|T then {ServerProc T {WinPoint State}}%todo Flo
+   [] winBonus(Id Pt)|T then {ServerProc T {WinBonus State}}%todo Flo
+   [] bonusOn(Pt ?Ret)|T then {ServerProc T {BonusOn Pt ?Ret State}} %Flo - C'est fait
    [] killGhost(IdPacman ListGHos ...) |T then {ServerProc T {KillGhost State}}
-   [] pacmanOn(pos ?List)|T then {ServerProc T {PacmanOn State}}
-   [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}
+   [] pacmanOn(pos ?List)|T then {ServerProc T {PacmanOn State}} %Todo flo
+   [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}%TODO FLO
    end
 end
 
@@ -105,13 +117,13 @@ fun {ClientFonc Msg}
           end       
            end
           %Points et bonus
-           {Send Send pointOn(pt ?pt)} %Si il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
-           if(pt!= nil) then %ou null ?
-          {Send Server winPoint(Id pt)} % Faire gager le point + prévenir les autre + update + aller voir commentaires
+           {Send Send pointOn(Pt ?Pt)} %Si il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
+           if(Pt!= nil) then %ou null ?
+          {Send Server winPoint(Id Pt)} % Faire gager le point + prévenir les autre + update + aller voir commentaires
            end
-           {Send Send bonusOn(pt ?pt)} %Si il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
-           if(pt!= nil) then %ou null ?
-          {Send Server winBonus(Id pt)} % Faire gager le point + prévenir les autre + updateLaListeDesBonus + mode(hunt) + remettre le temps a temps hunt + aller voir commentaires
+           {Send Send bonusOn(Pt ?Pt)} %Si il y a un point sur la case il le retire de la liste(et le renvoie) l'ajoute dans les points à respawn
+           if(Pt!= nil) then %ou null ?
+          {Send Server winBonus(Id Pt)} % Faire gager le point + prévenir les autre + updateLaListeDesBonus + mode(hunt) + remettre le temps a temps hunt + aller voir commentaires
            end
         end %If pos ! null
         
