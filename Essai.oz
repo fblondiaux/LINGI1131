@@ -1,20 +1,20 @@
 
 /*
-Dans la MAIN : (idée générale)
+Dans la MAIN : (idee generale)
 	   
-- Création des ports des pacmans, ghosts, initialisation de la map, ...
+- Creation des ports des pacmans, ghosts, initialisation de la map, ...
 
 MODE TURN BY TURN
-- création d'un NewPortObject pour le server : Server={NewPortObjectServer ServerProc}
+- creation d'un NewPortObject pour le server : Server={NewPortObjectServer ServerProc}
 - local Vainqueur in Vainqueur = {ClientFonc jouer}
 
 
 MODE SIMULTANE :
-- création d'un NewPortObject pour le server : Server={NewPortObjectServer ServerProc}
-- créations des clients : chaque joueur est un client.
-- création de un thread par client et dans chaque thread : appel de la fonction du client pour jouer
+- creation d'un NewPortObject pour le server : Server={NewPortObjectServer ServerProc}
+- creations des clients : chaque joueur est un client.
+- creation de un thread par client et dans chaque thread : appel de la fonction du client pour jouer
 
---> dans ce mode, il n'y a rien à décrémenter (à la place : {Delay..}, ce qui simplifie ServerProc
+--> dans ce mode, il n'y a rien à decrementer (à la place : {Delay..}, ce qui simplifie ServerProc
 
 
 */
@@ -25,7 +25,10 @@ fun {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime 
 in
    {NewPort Stream Port}
    thread
-      {ServerProc Stream state(posP:PosP posG:PosG posB:PosB m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)
+						       <position>|<position>	 un nombre		   <ghost>#<Nombre>|...
+       {ServerProc Stream state(posPac:PosPac posG:PosG posB:PosB pos:PosP m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)
+				Id#pt()|T    <Ghost>#<position>|...       classic ou hunt    <pacman>#<Nombre>|..   <position>#<Nombre>|...
+		%On dec que si plus grand que 1 huntime
    end
    Port
 end
@@ -33,7 +36,7 @@ end
 
 proc {ServerProc Msg State}
    case Msg
-   of décrémenter|T then {ServerProc T {Décrémenter State}}
+   of decrementer|T then {ServerProc T {Decrementer State}}
    [] jouer|T then {ServerProc T {Jouer State}}
    [] changeMode|T then {ServerProc T {ChangeMode State}}
    []...
@@ -45,31 +48,31 @@ end
 
 /*
 Principe :
-- Un appel récursif est un tour de jeu, où chaque joueur joue.
-- Avant qu'un joueur ne joue, on regarde si le mode Hunt est mis, on décrémente ce qui doit l'être,... --> même structure qu'avant
-- La différence est que pour chaque action qu'on veut faire, on envoie le message correspondant au port du server.
-- Le port du server voit alors qu'il a recu un message, fait l'action et par là même modifie son état interne (= state(...), qui correspond à notre state d'avant)
+- Un appel recursif est un tour de jeu, où chaque joueur joue.
+- Avant qu'un joueur ne joue, on regarde si le mode Hunt est mis, on decremente ce qui doit l'être,... --> même structure qu'avant
+- La difference est que pour chaque action qu'on veut faire, on envoie le message correspondant au port du server.
+- Le port du server voit alors qu'il a recu un message, fait l'action et par là même modifie son etat interne (= state(...), qui correspond à notre state d'avant)
 
-Avantage : le code est plus clair, plus structuré, plus propre, et plus simple aussi. 
+Avantage : le code est plus clair, plus structure, plus propre, et plus simple aussi. 
 */
 fun {ClientFonc Msg}
    case Msg
    of jouer then
-      for I in Liste do % Liste = liste de rec(Ports Pac) ou rec(Ports G) : Pac indique que c'est le port d'1 pacman, et G d'un ghost
+      {Send Server decrementer}
+      for I in Liste do  ->Liste = Sequence =  id ghost et id pacmans melanges
 	 local X in
 	    {Send Server isHuntMode(X)}
-	    {Wait X}
-	    if X == true then {Send Server huntTime} end
-	 end
-	 {Send Server décrémenter}
+
+	 
 	 if JoueurPacman /*à changer*/ then
-	    if isModeHunt then
+		move
+	    if X then
 	       ...
 	    else
 	       ...
 	    end
 	 else
-	    if isModeHunt then
+	    if X isModeHunt then
 	       ...
 	    else
 	       ...
@@ -83,7 +86,8 @@ fun {ClientFonc Msg}
 	 else
 	    {ClientProc jouer}
 	 end
-      end
+      	end
+	 end
    [] fin then
       ...
    end

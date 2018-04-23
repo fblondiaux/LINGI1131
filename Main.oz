@@ -330,7 +330,7 @@ in
 	 local E L N in
 	    N = {List.length SList}
 	    E = {List.nth SList ({OS.rand} mod N)+1}
-	    E|{AssignRandomSpawn {Remove SList E} M-1}
+	    E|{AssignRandomSpawn {Remove SList E} M-1} %        {List.subtract +Xs Y ?Zs} 
 	 end
       end
    end
