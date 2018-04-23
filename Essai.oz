@@ -26,31 +26,71 @@ fun {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime 
 in
    {NewPort Stream Port}
    thread
-						       <position>|<position>	 un nombre		   <ghost>#<Nombre>|...
-       {ServerProc Stream state(posPac:PosPac posG:PosG posB:PosB posP:PosP m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)
-				Id#pt()|T    <Ghost>#<position>|...       classic ou hunt    <pacman>#<Nombre>|..   <position>#<Nombre>|...
+						%      <position>|<position>	 un nombre		   <ghost>#<Nombre>|...
+       {ServerProc Stream state(posPac:PosPac posG:PosG posB:PosB posP:PosP m:Mode ht:HuntTime pact:PacTime gt:GTime bt:BTime pt:PTime)}
+			%Id#pt()|T    <Ghost>#<position>|...       classic ou hunt    <pacman>#<Nombre>|..   <position>#<Nombre>|...
 		%On dec que si plus grand que 1 huntime
    end
    Port
 end
 
-fun {ChangeMode State}
+/*Exchange the current state 
+*/
+
+/*
+fun {ChangeMode State} 
   if(State.mode == classic) then
   {AdjoinList State [mode#hunt ht#Input.huntTime]}
+  {Send WindowPort mode(hunt)}
+  {Diffusion PortsGhost mode(hunt)} %Verifier
+  {Diffusion PortsPacman mode(hunt)}
   else
   {AdjoinList State [mode#classic]}
+  {Send WindowPort mode(classic)}
+  {Diffusion PortsGhost mode(classic)} %Verifier
+  {Diffusion PortsPacman mode(classic)}
   end
 end
-
+*/
 fun{PointOn Pt Ret State}
   if({List.member Pt State.posP}) then %Si p est dans la liste posP
     Ret = Pt  
-    {AdjointList State [posP#{List.subtract State.posP Pt} pt#{List.append State.pt [Pt]]}
+    {AdjoinList State [posP#{List.subtract State.posP Pt} pt#{List.append State.pt [Pt]]}
   else 
     Ret = null %Attention peutêtre à changer
     State
   end
 end
+
+fun{GhostOn Pos Ret State} %On ne retire pas les ghost de l'état, l'état n'est pas modifié
+  fun{GhostOnLoop Pos List}
+    case List of H|T then
+      if(H == Pos) then H|{GhostOnLoop Pos T}
+      else {GhostOnLoop Pos T}
+      end
+    []nil then nil
+    end
+  end
+  in 
+  Ret = {GhostOnLoop Pos State.posG}
+  State
+end
+
+fun{PacmanOn Pos Ret State} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
+  fun{PacmanOnLoop Pos List}
+    case List of H|T then
+      if(H == Pos) then H|{PacmanOnLoop Pos T}
+      else {PacmanOnLoop Pos T}
+      end
+    []nil then nil
+    end
+  end
+  in 
+  Ret = {PacmanOnLoop Pos State.posPac}
+  State
+end
+
+
 
 fun{BonusOn Pt Ret State}
   if({List.member Pt State.posB}) then %Si p est dans la liste posP
@@ -67,14 +107,14 @@ proc {ServerProc Msg State}
    of decrementer|T then {ServerProc T {Decrementer State}} %Flo
    [] movePacman(Id ?NewPos)|T then %TODO %Flo
    [] changeMode|T then {ServerProc T {ChangeMode State}} %Flo A verifier il doit surement y avoir un argument
-   [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}}%Parcours posG, retourne une liste des <ghost> sur cette case.
+   [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn Pos List State}}%Flo - C'est fait
    [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
    [] pointOn(Pt ?Ret)|T then {ServerProc T {PointOn Pt ?Ret State}} %Flo - C'est fait
    [] winPoint(Id Pt)|T then {ServerProc T {WinPoint State}}%todo Flo
    [] winBonus(Id Pt)|T then {ServerProc T {WinBonus State}}%todo Flo
    [] bonusOn(Pt ?Ret)|T then {ServerProc T {BonusOn Pt ?Ret State}} %Flo - C'est fait
    [] killGhost(IdPacman ListGHos ...) |T then {ServerProc T {KillGhost State}}
-   [] pacmanOn(pos ?List)|T then {ServerProc T {PacmanOn State}} %Todo flo
+   [] pacmanOn(pos ?List)|T then {ServerProc T {PacmanOn State}} %Flo c'est fait
    [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}%TODO FLO
    end
 end
@@ -92,7 +132,8 @@ Avantage : le code est plus clair, plus structure, plus propre, et plus simple a
 fun {ClientFonc Msg}
    case Msg
    of 0 then
-      {Send Server decrementer}
+      {Send Server decrementer}djoinList State [mode#classic]}
+  
       for I in Liste do  ->Liste = Sequence =  id ghost et id pacmans melanges
      case I of
         pacman(id:Id color:_ name:_) then
