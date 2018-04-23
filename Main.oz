@@ -287,7 +287,7 @@ in
 
    % Renvoie la liste posPac/posG avec un élément retiré (celui donc le <pacman>/<ghost> correspond à Id)
    % Renvoie la liste intacte si l'élément n'a pas été trouvé
-   fun {DeletePac Id posPlayer}
+   fun {Delete Id posPlayer}
       case posPlayer
       of (ID#Pos)|T then
 	 case ID
@@ -324,14 +324,39 @@ in
 	 {Send WindowPort lifeUpdate(IdPacman NewLife)}
       end
       % renvoi du State dans lequel on a retiré IdPacman de posPac et ajouté dans pacTime
-      {AdjoinList State [posPac#{DeletePac IdPacman State.posPac} pacT#(State.pacT|(IdPacman#Input.respawnTimePacman))]}
+      {AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#(State.pacT|(IdPacman#Input.respawnTimePacman))]}
    end
 
-
    
-      
-   
-
+   fun {KillGhost IdPacman ListGhosts State}
+      PortGhost
+   in
+      case ListGhosts
+      of IdGhost|T then
+	 PortGhost = {List.nth PortsGhost IdGhost}
+	 % prévénir le ghost qu'il a été tué
+	 {Send PortGhost gotKilled()}
+	 % prévénir tous les pacmans, avec un message différent pour celui qui a tué le ghost
+	 local IDp NewScore in
+	    for P in PortsPacman do ID in
+	       {Send P getId(ID)}
+	       if ID == IdPacman then
+		  {Send P killGhost(IdGhost IDp NewScore)} % faut-il vérifier que IDp == IdPacman ?	  
+	       else
+		  {Send P deathGhost(IdGhost)}
+	       end
+	    end
+	    % prévénir GUI
+	    {Send WindowPort scoreUpdate(IDp NewScore)}
+	    {Send WindowPort hideGhost(IdGhost)}
+	 end
+	 % appel récursif avec le nouveau State (State dans lequel on a retiré IdGhost de posG et ajouté dans gT)
+	 {KillGhost IdPacman T
+	  {AdjoinList State [posG#{Delete IdGhost State.posG} gT#(State.gT|(IdGhost#Input.respawnTimeGhost))]}}
+      [] nil then State
+      end
+   end
+ 
    proc {ServerProc Msg State}
       case Msg 
       of decrementer|T then {ServerProc T {Decrementer State}} %Flo

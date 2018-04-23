@@ -207,6 +207,61 @@ fun {ClientFonc Msg}
 end
    
 	 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%BROUILLON
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/* state(who:QuiVAJouer posP: PositionDesPacmans posG: PositionGhost posB:Listepositiondesbonus posP:Listepositionpoints mode: Mode(0=normal 1 =hunt) huntTime:(-1 -> on fait rien, 0 on swich mode vers normal, X = nb de tours restants) pacTime: (liste de pt + nombre de tours) gTime: pointTime: bTime:)
+   */
+
+   fun{Play State}
+      local State1 State2 in
+         %Verification HuntTime
+   	 case State.huntTime of 1 then
+   	    {Diffusion PortsPacman setMode(classic)}
+   	    {Send WindowPort setMode(classic)}
+   	    {Diffusion PortsGhost setMode(classic)}
+   	    State1 = {AdjoinList State [huntTime#0 mode#0]}
+   	 [] 0 then
+   	    State1 = {AdjoinList State [huntTime#0 mode#0]}
+   	 else
+   	    State1 = {AdjoinList State [huntTime#State.huntTime-1 mode#1]}
+   	 end
+         %Décremente pacTime - gTime - bonus et point.
+   	 local PacRecord GRecord BTimeProc BRecord PointTimeProc PRecord in
+
+   	    PacRecord = {DecListPacman State1.pacTime rec(active:nil inactive:nil)}
+
+   	    GRecord = {DecListGhost State1.gTime GTimeProc rec(active:nil inactive:nil)}
+
+   	    proc{BTimeProc Pos}
+   	       {Diffusion PortsPacman bonusSpawn(Pos)}
+   	       {Send WindowPort spawnBonus(P)}
+   	    end
+   	    BRecord = {BonusDec State.bTime BTimeProc rec(active:nil inactive:nil)}
+
+   	    proc{PointTimeProc Pos}
+   	       {Diffusion PortsPacman pointSpawn(Pos)}
+   	       {Send WindowPort spawnPoint(P)}
+   	    end
+   	    PRecord = {BonusDec State.pointTime PointTimeProc rec(active:nil inactive:nil)}
+
+
+   	    State2 = {AdjoinList State1 [posP#{List.append PacRecord.active State1.posP} posG#{List.append GRecord.active State1.posG} posB#{List.append BRecord.active State1.posB} posP#{List.append PRecord.active State1.posP} pacTime#PacRecord.inactive gTime#GRecord.inactive pointTime#PRecord.inactive bTime#BRecord.inactive]}
+   	 end
+
+         %Separer en fonction pacman ou ghost
+         %Move ...
+   	 case {List.nth Sequence State2.who} of pacman(id:Id color:_ name:_) %_ pour dire qu'on ne veux pas stocker Color
+   	 %TODO
+   	 []ghost(id:Id color:_ name:_)
+   	 %Todo
+   	 end %End case pacman/ghost
+      end%endlocal
+   end%end Play
+
+
       
    
 
