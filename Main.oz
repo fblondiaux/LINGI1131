@@ -38,6 +38,7 @@ define
    ServerProc
    ClientFonc
    NewPortObjectServer
+   SpawnToIdPos
 
    WindowPort
    PortsPacman
@@ -45,6 +46,7 @@ define
    IdPacman
    IdGhost
    MapRecord
+   Server
 
    Sequence %List containing IDs in which we're gonna play. (Suffle applied on IdPacman and IdGhost)
    PointList
@@ -57,14 +59,15 @@ define
    GSList2
    ListSpawnPacman % liste des spawns pour chaque pacman
    ListSpawnGhost 
-
-   Diffusion
-   Mult
-   InitSList
-   Remove
-   AssignRandomSpawn
    
 in
+  %Transform a list of spawn to ID#Pos|... We need it do create port server
+  fun{SpawnToIdPos List Count}
+    case List of H|T then
+      Count#H|{SpawnToIdPos T Count+1}
+    []nil then nil
+    end
+  end
 
 %Function who creates ports for all Pacmans defined in Input.
    %In: Nothing
@@ -330,16 +333,16 @@ in
    end
 
    fun{DecHunt State}
-      if State.ht == 1 then 
+      if State.hT == 1 then 
    {Diffusion PortsPacman mode(classic)} 
    {Send WindowPort mode(classic)}
    {Diffusion PortsGhost mode(classic)}
-   {AdjoinList State [ht#0]}
+   {AdjoinList State [hT#0]}
       else
-   if(State.ht == 0) then
+   if(State.hT == 0) then
       State
    else 
-      {AdjoinList State [ht#State.ht-1]}
+      {AdjoinList State [hT#State.hT-1]}
    end
       end
    end
@@ -349,9 +352,9 @@ in
     % Renvoie la liste intacte si l'élément n'a pas été trouvé
    fun {Delete Id posPlayer}
       case posPlayer
-      of ID#Pos|T then
+      of ID#pt(x:_ y:_)|T then
         if ID==Id then T
-        else ID#Pos|{Delete Id T}
+        else posPlayer|{Delete Id T}
         end
       []nil then nil
       end
@@ -437,7 +440,7 @@ in
    Ret = Pt 
    {AdjoinList State [posP#{List.subtract State.posP Pt} pt#{List.append State.pt [Pt]}]}
       else 
-   Ret = false %Attention peutêtre à changer
+   Ret = nil %Attention peutêtre à changer
    State
       end
    end
@@ -500,7 +503,7 @@ in
       {Diffusion PortsPacman mode(hunt)}
       {Diffusion PortsGhost mode(hunt)}
       {Send WindowPort mode(hunt)}
-      {AdjoinList State [m#hunt ht#((Input.huntTime)*(Input.nbPacman + Input.nbGhost))]}
+      {AdjoinList State [m#hunt hT#((Input.huntTime)*(Input.nbPacman + Input.nbGhost))]}
    end
 
    fun{HuntMode Mode State}
@@ -588,7 +591,7 @@ in
    for I in Sequence do % Sequence =  id ghost et id pacmans melanges
       case I of pacman(id:Id color:_ name:_) then
          local NewPos in
-      {Send Server movePacman(Id NewPos)}
+      {Send Server movePacman(I NewPos)}
       if(NewPos \= null) then
          local Mode in
       {Send Server huntMode(Mode)}
@@ -628,7 +631,7 @@ in
          end % local NewPos
       []ghost(id:Id color:_ name:_) then
          local NewPos in
-      {Send Server moveGhost(Id ?NewPos)}
+      {Send Server moveGhost(I ?NewPos)}
       if(NewPos \= nil) then
          local Mode in
       {Send Server huntMode(Mode)}
@@ -732,7 +735,7 @@ in
 
       if {List.length PortsPacman} > 1 then
    for Port in PortsPacman do
-      local R S in
+      local R S Id Pos in
          {Send Port getId(R)}
          {Send WindowPort initPacman(R)}
          S = {List.nth ListSpawnPacman R.id}
@@ -777,7 +780,19 @@ in
       {Diffusion PortsPacman ghostPos(IdGhost.1 S)} % Diffusion du spawn aux pacmans
    end
       end
+    
+      if(Input.isTurnByTurn) then
+      local
+      PosP PosG in
+      PosP = {SpawnToIdPos ListSpawnPacman 1} 
+      PosG = {SpawnToIdPos ListSpawnGhost 1}
+      Server={NewPortObjectServer PosP PosG PointList BonusList classic 0 nil nil nil nil } % à compléter
+      % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
+      end%local
+      {ClientFonc 0 Server}
 
- 
+      %MODE SIMULATNE MODE SIMULTANE MODE SIMULTANE
+      %else 
+      end
    end % end du thread
 end % end du in
