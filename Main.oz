@@ -369,7 +369,7 @@ in
 	    else 
 	       % renvoi du State dans lequel on a retiré IdPacman de posPac et ajouté dans pacTime
 	       {KillPacman T IdGhost EndOfGame
-		{AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#(State.pacT|(IdPacman#Input.respawnTimePacman))]}}
+		{AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#{Append State.pacT [IdPacman#(Input.respawnTimePacman *(Input.nbPacman + Input.nbGhost))]}]}}
 	    end % if
 	 end %local
       [] nil then
@@ -402,7 +402,7 @@ in
 	   end
 	   % appel récursif avec le nouveau State (State dans lequel on a retiré IdGhost de posG et ajouté dans gT)
 	     {KillGhost IdPacman T
-	    {AdjoinList State [posG#{Delete IdGhost State.posG} gT#(State.gT|(IdGhost#Input.respawnTimeGhost))]}}
+	    {AdjoinList State [posG#{Delete IdGhost State.posG} gT#{Append State.gT [IdGHost#(Input.respawnTimeGhost *(Input.nbPacman + Input.nbGhost))]}]}}
       [] nil then State
       end
    end
@@ -460,6 +460,7 @@ in
        State
     end
 
+    %Un point est gagné, toutes les actions correspondantes sont réalisées.
     fun{WinPoint Id Point State}
        IdCheck NewScore in
        {Send WindowPort hidePoint(Point)}
@@ -468,17 +469,18 @@ in
        {Send WindowPort scoreUpdate(IdCheck NewScore)}
     end
 
-        fun{WinBonus Id Bonus State}
+    %Un bonus est attrapé, toutes les actions correspondantes sont réalisées.
+    fun{WinBonus Id Bonus State}
        IdCheck NewScore in
        {Send WindowPort hideBonus(Bonus)}
        {Diffusion PacmanPorts bonusRemoved(Bonus)}
-       {Diffusion PacmanPorts mode(classic)}
-       {Send {List.nth PacmanPorts Id.id} addPoint(Input.rewardPoint ?IdCheck ?NewScore)}
-       {Send WindowPort scoreUpdate(IdCheck NewScore)}
-
- + setMode(Add ?ID ?NewScore) (PacmanS + GhostS + GUI).
-%               %le champ correspondant à Hunt time est mis à hunt time de l'input.
+       {Diffusion PacmanPorts mode(hunt)}
+       {Diffusion GhostPorts mode(hunt)}
+       {Send WindowPort mode(hunt)}
+       {AdjoinList State [m#hunt ht#((Input.huntTime)*(Input.nbPacman + Input.nbGhost))]}
     end
+
+
 
    proc {ServerProc Msg State}
       case Msg 
@@ -495,7 +497,7 @@ in
       [] killPacman(ListPacmans IdGhost EndOfGame)|T then {ServerProc T {KillPacman ListPacmans IdGhost EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point)|T then {ServerProc T {WinPoint Id Point State}}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State}} %Flo c'est fait
-      [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}}
+      [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
       [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost IdPacman ListGhosts State}}
       [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}
       end
