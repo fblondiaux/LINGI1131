@@ -264,7 +264,85 @@ end
    end%end Play
 
 % coucou
-      
+%Une fonction que l'on appelle récursivement.
+%     Prends en argument un state et retourne un state.
+%     Le record state contiendrait:
+%         %Un champ qui nous permettrait de savoir quel est le joueur (À qui le tour par exemple pacman1) : c'est un nombre, incrémenté (avec modulo) et on appelle le n-eme nombre de la liste pour jouer.
+%         %Plusieurs champs, un par pacman avec sa position.
+%         %Plusieurs champs, un par ghost avec sa position.
+%         %Liste avec les positions des  bonus
+%         %Liste avec les positions des points
+%         %Mode du jeu
+%         %Un champ que l'on décrémente avec le hunt time. Quand il vaut 1-> le mode est mis à normal et on passe la valeur à 0 pour dire qu'il ne faut rien faire.
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimePoint (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimeBonus (Quand il vaut 0 -> On spawn un nouveau point) Cas particulier: plus de place sur la board.
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimePacman (Quand un pacman meurt on le met à respawnTimePacman et on décrémente quand c'est égal à 2 on respawn le pacman.)
+%         %Liste avec à chauqe fois un champ que l'on décrémente avec le respawnTimeGhost
+%     Etapes de cette fonction.
+%       %
+%       %Décrementer ce qui doit l'etre (respawnTime...(5)
+%              %Si certaines valeurs sont arrivée au bout -> faire les actions correspondante
+%              %Quand un pacman(resussite) de respawnTimePacman arrive à 0 -> (ressusite) spawn(?ID ?P) + (Ghosts) PacmanPos() +GUI spawnPacman(ID P)
+%              %Quand un ghost(resussite) de respawnTimePacman arrive à 0 -> (ressusite) spawn(?ID ?P) + (PacmanS) PacmanPos() +GUI spawnGhost(ID P)
+%              %Quand le respawnTimeBonus arrive à échéance -> (Pacmans) bonusSpawn(P) + GUI spawnBonus
+%              %Quand le respawnTimePoint arrive à échéance -> on random une position libre pour le point. (Pacmans) pointSpawn(P)+ GUI spawnPoint(P)
+%              %Quand le huntTime arrive à échéance -> Tous( GUI + Pacmans + GhostS) setMode(Normal)
+%       %__________________________
+%       %Si le joueur est un pacman
+%       %(Joueur) move(?ID ?P)  %On envoie au joueur move(?ID ?P)
+%       %(GhostS) pacmanPos(ID P) + GUI movePacman(ID P)
+%
+%         %Si mode normal
+%               %Parcourir la liste des fantomes, si il y en à un sur la même case(Je l'appelle le tueur):
+%                       %GUI: hidePacman(Joueur) + Joueur : gotKilled(?ID ?NewLife) + Gui = lifeUpdate(ID NewLife) +
+%                       % deathPacman(ID) (GhostS) + (Tueur) killPacman(ID)   + scoreUpdate(ID NewScore) (Joueur).
+%                               %Si NewLife == 0 Il est mort.
+%                                        %Si il est le dernier en jeu : % Je ne sais pas encore comment savoir ça.
+%                                                     %displayWinner(ID)
+%                                                     %Finir la fonction ici.
+%                                        %Si pas il faudra le retirer des listes/Ou bien l'ingnorer -> Pas encore bcp d'idées.
+%                                %Si NewLife =! 0
+
+%                       %Ajouter dans la liste contenant les pacmans qui sont mort  respawnPacmanList.
+%                       %
+%                       %Cas particulier à aprofondir, plusieurs ghost sur une même case qui prends le point.
+%         %Si mode Hunt.
+%               %Le pacman est sur la case d'un ghost(victime)
+%               % (Victime) gotKilled() + (PacmanS) deathGhost(ID) +(Joueur) killGhost(ID).
+%               %   + scoreUpdate(ID NewScore) (Joueur).
+%               % (GUI-) HideGhost(Victime).
+%               % L'ajouter dans la liste contenant les ghost qui doivent respawn.
+
+      %Si il y à point sur la case courrante. %On prends quand même le point si le pacman va se faire tuer ?
+%               hidePoint(P) (GUI)+ pointRemoved(P) (PacmanS) + addPoint(Add ?ID ?NewScore) (Joueur)  + scoreUpdate(ID NewScore) (Joueur).
+%
+%         %Vérifier si il y à un bonus sur la case. %Pareil comment réagir si il y à 1 ghost et un bonus sur la même case
+%               hideBonus(P) (GUI)+ bonusRemoved(P) (PacmanS) + setMode(Add ?ID ?NewScore) (PacmanS + GhostS + GUI).
+%               %le champ correspondant à Hunt time est mis à hunt time de l'input.
+
+%       %_________________________
+%       %Si le joueur est un ghost
+%       %(Joueur) move(?ID ?P)
+%       %(PacmanS) ghostPos(ID P) + GUI moveGhost(ID P)
+%         %Si mode normal
+%               %Parcourir la liste des pacmans, si il y en à un sur la même case(Je l'appelle victime):
+%                       %GUI: hidePacman(Victime) + Victime : gotKilled(?ID ?NewLife) + Gui = lifeUpdate(ID NewLife) +
+%                       % deathPacman(ID) (GhostS) + (Joueur) killPacman(ID)  + scoreUpdate(ID NewScore) (Victime).
+%                               %Si NewLife == 0 Il est mort.
+%                                        %Si il est le dernier en jeu : % Je ne sais pas encore comment savoir ça.
+%                                                     %displayWinner(ID)
+%                                                     %Finir la fonction ici.
+%                                        %Si pas il faudra le retirer des listes/Ou bien l'ingnorer -> Pas encore bcp d'idées.
+%                                %Si NewLife =! 0
+
+%                       %Ajouter dans la liste contenant les pacmans qui sont mort  respawnPacmanList.
+%                       %
+%                       %Cas particulier à aprofondir, plusieurs ghost sur une même case qui prends le point.
+%         %Si mode Hunt.
+%               %Le pacman(Tueur) est sur la case d'un ghost(Joueur)
+%               % (Joueur) gotKilled() + (PacmanS) deathGhost(ID) +(Tueur) killGhost(ID).
+%               % (GUI-) HideGhost(Victime).  + scoreUpdate(ID NewScore) (Tueur).
+%               % L'ajouter dans la liste contenant les ghost qui doivent respawn.
    
 
 
