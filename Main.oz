@@ -259,8 +259,6 @@ in
             
                Port ={List.nth PortsGhost Id.id}
                {Send Port spawn(IdCheck PCheck)}
-                     %Faut il verifier les valeurs de retour ? On sait peut-être mettre un symbole pour ne pas recuperer IdCheck
-                 % le $ ne fonctionne pas dans ce cas la
                {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
                {Send WindowPort spawnGhost(IdCheck PCheck)}
                {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
@@ -281,17 +279,17 @@ in
          fun{DecListPacman L Rec}
             case L of Id#Time|T then
             
-         local Port IdCheck PCheck in
-            if Time == 1 then
-               Port ={List.nth PortsPacman Id.id}
-               {Send Port spawn(IdCheck PCheck)}
-               {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
-               {Send WindowPort spawnPacman(IdCheck PCheck)}
-               {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
-              
-            else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
-            end
-         end
+               local Port IdCheck PCheck in
+                   if Time == 1 then
+                     Port ={List.nth PortsPacman Id.id}
+                     {Send Port spawn(IdCheck PCheck)}
+                     {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+                     {Send WindowPort spawnPacman(IdCheck PCheck)}
+                     {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+                  
+                  else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+                  end
+               end
             []nil then Rec
             end
          end
@@ -321,6 +319,19 @@ in
        Rec in
        {BonusDec State.bT  proc{$ Pos} {Diffusion PortsPacman bonusSpawn(Pos)} {Send WindowPort spawnBonus(Pos)} end rec(active:nil inactive:nil)}
        {AdjoinList State [posB#{List.append Rec.active State.posB} bT#Rec.inactive]}
+    end
+
+    fun{DecHunt State}
+      if State.ht == 1 then 
+        {Diffusion PortsPacman mode(classic)} 
+        {Send WindowPort mode(classic)}
+        {Diffusion PortsGhost mode(classic)
+        {AdjoinList State [ht#0]}
+      else
+        if(State.ht == 0)
+        State|
+        else 
+        {AdjoinList State [ht#State.ht-1]}
     end
           
 
@@ -404,7 +415,7 @@ in
           Ret = Pt  
           {AdjoinList State [posB#{List.subtract State.posB Pt} bt#{List.append State.bt [Pt]}]}
        else 
-          Ret = null %Attention peutêtre à changer
+          Ret = nil %Attention peutêtre à changer
           State
        end
     end
@@ -440,6 +451,25 @@ in
        State
     end
 
+    fun{WinPoint Id Point State}
+       IdCheck NewScore in
+       {Send WindowPort hidePoint(Point)}
+       {Diffusion PacmanPorts pointRemoved(Point)}
+       {Send {List.nth PacmanPorts Id.id} addPoint(Input.rewardPoint ?IdCheck ?NewScore)}
+       {Send WindowPort scoreUpdate(IdCheck NewScore)}
+    end
+
+        fun{WinBonus Id Bonus State}
+       IdCheck NewScore in
+       {Send WindowPort hideBonus(Bonus)}
+       {Diffusion PacmanPorts bonusRemoved(Bonus)}
+       {Diffusion PacmanPorts mode(classic)}
+       {Send {List.nth PacmanPorts Id.id} addPoint(Input.rewardPoint ?IdCheck ?NewScore)}
+       {Send WindowPort scoreUpdate(IdCheck NewScore)}
+
+ + setMode(Add ?ID ?NewScore) (PacmanS + GhostS + GUI).
+%               %le champ correspondant à Hunt time est mis à hunt time de l'input.
+    end
 
    proc {ServerProc Msg State}
       case Msg 
@@ -447,17 +477,17 @@ in
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
       [] decPoint|T then {ServerProc T {DecPoint State}}%Flo c'est fait
       [] decBonus|T then {ServerProc T {DecBonus State}}%Flo c'est fait
+      [] decHunt|T then {ServerProc T {DecHunt State}}%Flo c'est fait
       [] movePacman(Id ?NewPos)|T then {ServerProc T {MovePacman State}} %TODO %Noemie
       [] huntMode(Mode)|T then {ServerProc T {HuntMode State}} % Noémie (dit s'il est en mode hunt ou pas)
-      %[] changeMode|T then {ServerProc T {ChangeMode State}} %Noemie Si je ne me trompe pas c'est pas d'actualité si ? 0 arguments ? 
-      [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn State}} % Flo c'est fait
-      [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn State}} % Flo c'est fait
+      [] ghostOn{Pos ?List}|T then {ServerProc T {GhostOn Pos ?List State}} % Flo c'est fait
+      [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn Pos ?List State }} % Flo c'est fait
       [] killPacman(IdPacman IdGhost ?endOfGame)|T then {ServerProc T {KillPacman IdPacman IdGhost ?endOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)
-      [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn State}} %Flo c'est fait
-      [] winPoint(Id Point)|T then {ServerProc T {WinPoint State}} 
-      [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn State}} %Flo c'est fait
-      [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus State}}
-      [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost State}}
+      [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
+      [] winPoint(Id Point)|T then {ServerProc T {WinPoint Id Point State}}  %Flo c'est fait
+      [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State}} %Flo c'est fait
+      [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}}
+      [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost State}} 
       [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}
       end
    end
