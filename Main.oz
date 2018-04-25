@@ -65,9 +65,9 @@ in
    % TODO add additionnal function
    %Transform a list of spawn to ID#<position>|... We need it do create port server
    % List : list of <position>
-   fun{SpawnToIdPos List Count}
-      case List of H|T then
-	 Count#H|{SpawnToIdPos T Count+1}
+   fun{SpawnToIdPos IdPacman Liste }
+      case Liste of H|T then
+	     IdPacman.1#H|{SpawnToIdPos IdPacman.2 T}
       []nil then nil
       end
    end
@@ -308,7 +308,7 @@ in
       end
    in
       Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
-      {AdjoinList State [posP#{List.append Rec.active State.posP} pacTime#Rec.inactive]}   
+      {AdjoinList State [posP#{List.append Rec.active State.posP} pacT#Rec.inactive]}   
    end
 
      %L = [pt1#1 pt2#5]
@@ -563,7 +563,7 @@ in
       [] ghostOn(Pos ?List)|T then {ServerProc T {GhostOn Pos ?List State}} % Flo c'est fait
       [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn Pos ?List State }} % Flo c'est fait
       [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos Point State}} %Flo c'est fait
-      [] killPacman(IdGhost ListPacmans EndOfGame)|T then {ServerProc T {KillPacman IdGhost ListPacmans EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
+      [] killPacman(IdGhost ListPacmans EndOfGame)|T then {System.show State}{ServerProc T {KillPacman IdGhost ListPacmans EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point )|T then {ServerProc T {WinPoint Id Point State }}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State }} %Flo c'est fait
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
@@ -593,10 +593,13 @@ in
 			if(Mode == classic) then
 			   local Liste in
 			      {Send Server ghostOn(NewPos Liste)}
-               {Browser.browse Liste}
 			      if(Liste \= nil) then
-				     local EndOfGame in
-				        {Send Server killPacman({List.nth Liste ({OS.rand} mod {List.length Liste})+1} [I]  EndOfGame)} /*IdGhost =  Un random sur un élément de la liste pour savoir qui on prends*/
+				     local EndOfGame IdGHost in
+                     IdGHost ={List.nth Liste ({OS.rand} mod {List.length Liste})+1}
+                     {System.show "killPacman valeur de IDGHost"}
+                     {System.show IdGHost}
+
+				        {Send Server killPacman(IdGHost [I]  EndOfGame)} /*IdGhost =  Un random sur un élément de la liste pour savoir qui on prends*/
 				      if(EndOfGame) then
 				       {ClientFonc 1 Server}
 				    end % if
@@ -638,6 +641,9 @@ in
                {Browser.browse Liste}
 			      if(Liste \= nil) then
 				 local EndOfGame in
+
+                     {System.show "killPacman valeur de IDGHost"}
+                     {System.show I}
 				    {Send Server  killPacman(I Liste EndOfGame)} %La meme qu'au dessus dans case pacman
 				    if(EndOfGame) then
 				       {ClientFonc 1 Server}
@@ -780,8 +786,8 @@ in
        if(Input.isTurnByTurn) then
        	 local
        	    PosP PosG in
-       	    PosP = {SpawnToIdPos ListSpawnPacman 1} 
-       	    PosG = {SpawnToIdPos ListSpawnGhost 1}
+       	    PosP = {SpawnToIdPos IdPacman ListSpawnPacman} 
+       	    PosG = {SpawnToIdPos IdGhost ListSpawnGhost}
        	    Server = {NewPortObjectServer PosP PosG PointList BonusList classic 0 nil nil nil nil } % à compléter
               % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
        	 end %local
