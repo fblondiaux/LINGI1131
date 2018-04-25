@@ -291,40 +291,47 @@ in
       end
    end
 
-   fun{DecPacman PacToKill State}
+   fun{DecPacman EndOfGame State}
       Rec
-      fun{DecListPacman L Rec}
-         case L of Id#Time|T then
-               
-       local Port IdCheck PCheck in
-          if Time == 1 then
-             Port ={List.nth PortsPacman Id.id}
-             {Send Port spawn(IdCheck PCheck)}
-             local Ret in
-           {GhostOn PCheck Ret State _}
-           {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
-           {Send WindowPort spawnPacman(IdCheck PCheck)}
-           if Ret \= nil then
-
-              {DecListPacman T {Record.adjoinAt Rec pacToKill {List.nth Ret ({OS.rand} mod {List.length Ret})+1}#Id|Rec.pacToKill}}
-           else
-
-              {DecListPacman T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
-           end
-             end  
-                     
-          else {DecListPacman T {Record.adjoinAt Rec inactive Id#Time-1|Rec.inactive}}
-          end
-       end
-         []nil then Rec
-         end
+      fun{DecListPacman ?EOfG L Rec}
+	 case L of Id#Time|T then
+            
+	    local Port IdCheck PCheck in
+	       if Time == 1 then
+		  Port ={List.nth PortsPacman Id.id}
+		  {Send Port spawn(IdCheck PCheck)}
+		  local Ret State2 State3 EndOfGame2 in
+		     State2 = {GhostOn(PCheck Ret State)}
+		     if Ret \= nil then
+			State3 = {KillPacman {List.nth Ret ({OS.rand} mod {List.length Ret})+1} [IdCheck] EndOfGame State2}
+			if(EndOfGame2) then
+			   EOfG = EndOfGame2
+			   State3
+			else
+			   
+			end
+			
+			
+			
+		     else	
+			{Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+			{Send WindowPort spawnPacman(IdCheck PCheck)}
+			{DecListPacman T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
+		     end
+		     
+                  
+	       else {DecListPacman T {Record.adjoinAt Rec inactive Id#Time-1|Rec.inactive}}
+	       end
+	    end
+	 []nil then Rec
+	 end
       end
    in
       if State.pacT == nil then
-         State
+	 State
       else
-         Rec = {DecListPacman State.pacT rec(active:nil inactive:nil pacToKill:nil)}
-         {AdjoinList State [posPac#{List.append Rec.active State.posP} pacT#Rec.inactive]}
+	 Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
+	 {AdjoinList State [posPac#{List.append Rec.active State.posP} pacT#Rec.inactive]}
       end
    end
 
@@ -569,9 +576,11 @@ in
    end
 
    proc {ServerProc Msg State}
-   
+      {Browser.browse Msg} 
+      {Browser.browse State}
+      {Delay 1000}
       case Msg 
-      of decPacman(PacToKill)|T then {ServerProc T {DecPacman PacToKill State}} %Flo c'est fait
+      of decPacman|T then {ServerProc T {DecPacman State}} %Flo c'est fait
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
       [] decPoint|T then {ServerProc T {DecPoint State}}%Flo c'est fait
       [] decBonus|T then {ServerProc T {DecBonus State}}%Flo c'est fait
@@ -596,19 +605,13 @@ in
       case Msg 
       of 0 then
 	 for I in Sequence do % Sequence =  id ghost et id pacmans melanges
-         local PacToKill EndOfGame in
-            {Send Server decPacman(PacToKill)} %TODO 
-               for I in PacToKill do
-                  {Send Server killPacman(I.1 [I.2] EndOfGame)}
-                  if(EndOfGame) then
-                     {ClientFonc 1 Server}
-                  end
-               end
-         end
+
+        {Send Server decPacman} %TODO 
         {Send Server decGhost}
         {Send Server decPoint}
          {Send Server decBonus}
          {Send Server decHunt}
+         {Delay 2000}
 	    case I of pacman(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server movePacman(I NewPos)}
