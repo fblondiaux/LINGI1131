@@ -48,11 +48,6 @@ in
    Port
 end
 
-fun {Move Id NewPos State}
-   ...
-end
-
-
 fun {Controller Init /*ce qui suit : à enlever*/ Input}
    Pid = {Timer}
    proc {ServerProc Msg State}
@@ -76,6 +71,8 @@ fun {Controller Init /*ce qui suit : à enlever*/ Input}
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} 
       [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost IdPacman ListGhosts State}}
       [] whoWin(?Vainqueur)|T then {ServerProc T {WhoWin State}}
+      [] pacmanInLife(End)|T then {ServerProc T {PacmanInLife End State)} % A rajouter : demande à tous les pacmans leur nombre de vie restant
+	                                                                % et lie End à true si il ne reste aucune vie à aucun pacman, false sinon
       end   
    end
    Cid
@@ -84,30 +81,31 @@ in
    Cid
 end
 
-fun {ClientFoncPacman Msg ID}
+% Pour un pacman
+proc {ClientFoncPacman ID}
    % le pacman veut jouer
-   local NewPos Mode List in
+   local NewPos Mode Liste in
       {Send Server movePacman(ID NewPos)}
-      {Wait NewPos} % à enlever
+      {Wait NewPos} % à enlever?
       {Send Server huntMode(Mode)}
       if Mode==classic then %%%%%%%%%%% MODE CLASSIC %%%%%%%%%%
-	 {Send Server ghostOn(NewPos List)}
-	 if List \= nil then % il y a au moins 1 ghost sur la case %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier (le nil)
+	 {Send Server ghostOn(NewPos Liste)}
+	 if Liste \= nil then % il y a au moins 1 ghost sur la case %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier (le nil)
 	    % Prendre un ghost au hasard sur la liste
-	    local N IdGhost EndOfGame in
-	       Length = {List.length List}
+	    local Length Number IdGhost EndOfGame in
+	       Length = {List.length Liste}
 	       Number = ({OS.rand} mod Length)+1
-	       IdGhost = {List.nth List Number}  %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier
-	       {Send Server killPacman(ID IdGhost EndOfGame)}
+	       IdGhost = {List.nth Liste Number}  %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier
+	       {Send Server killPacman(ID|nil IdGhost EndOfGame)} 
 	       if (EndOfGame) then
 		  skip % fin du jeu
 	       end
 	    end
 	 end
       else %%%%%%%%%%% MODE HUNT %%%%%%%%%%
-	 {Send Server ghostOn(NewPos List)}
-	 if List \= nil then % il y a au moins 1 ghost sur la case %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier (le nil)
-	    {Send Server killGhost(ID List)}
+	 {Send Server ghostOn(NewPos Liste)}
+	 if Liste \= nil then % il y a au moins 1 ghost sur la case %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier (le nil)
+	    {Send Server killGhost(ID Liste)}
 	 end	 	    
       end
       %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier : le pacman peut gagner des points même en mode hunt?
@@ -127,8 +125,79 @@ fun {ClientFoncPacman Msg ID}
    end
 end
 
-      
-	 
+
+proc {ClientFoncGhost ID}
+   local NewPos Mode Liste in
+      {Send Server moveGhost(ID NewPos)}
+      if NewPos \= nil then
+	 {Send Server huntMode(mode)}
+	 if Mode==classic then
+	    {Send Server pacmanOn(NewPos Liste)}
+	    if List \= nil then
+	       local EndOfGame in
+		  {Send Server killPacman(ID Liste EndOfGame)}
+		  if (EndOfGame) then
+		     skip
+		  end
+	       end
+	    end
+	 else % Mode Hunt
+	    local Liste in
+	       {Send Server pacmanOn(NewPos Liste)}
+	       if Liste \= nil then % il y a au moins un pacman sur la case
+		  local Length Number IdPacman in
+		     Length = {List.length Liste}
+		     Number =  ({OS.rand} mod Length)+1
+		     IdPacman = {List.nth Liste Number} %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier
+		     {Send Server killGhost(IdPacman ID|nil)}
+		  end
+	       end
+	    end
+	 end
+      end
+   end
+   local End in
+      {Send Server pacmanInLife(End)}
+      if End == true then skip
+      end
+   end
+end
+
+proc {InitClient ID Player}
+   case Player
+   of pacman then
+      case ID
+      of H|T then
+	 thread {ClientFoncPacman H} end
+	 {InitClient T Player}
+      [] nil then skip
+      end
+   [] ghost then
+      case ID
+      of H|T then
+	 thread {ClientFoncGhost H} end
+	 {InitClient T Player}
+      [] nil then skip
+      end
+   end
+end
+
+
+
+% création du server
+Server = {Controller state(posPac:PosPac posG:PosG posB:PosB posP:PosP m:Mode)} %%%%%%%%%%%%%%%%%%%%%%%%%% à vérifier
+
+% création des clients
+{InitClient IdPacman pacman} % InitPacman = liste des IDs des pacmans
+{InitClient IdGhost ghost}
+
+
+		     
+		     
+		 
+		  
+		  
+	       
       
       
       
