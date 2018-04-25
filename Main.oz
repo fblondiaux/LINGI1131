@@ -322,7 +322,7 @@ in
       else
 	 Rec = {DecListPacman State.pacT rec(active:nil inactive:nil pacToKill:nil)}
 	 PacToKill = Rec.pacToKill
-	 {AdjoinList State [posPac#{List.append Rec.active State.posP} pacT#Rec.inactive]}
+	 {AdjoinList State [posPac#{List.append Rec.active State.posPac} pacT#Rec.inactive]}
       end
    end
 
@@ -589,29 +589,26 @@ in
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
       [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost IdPacman ListGhosts State}}
       [] whoWin|T then {ServerProc T {WhoWin State}} %Flo ok
+      [] endOfGame(?B)|T then B = State.posPac == nil andthen State.pacT == nil {ServerProc T State}
+
       end
    end
 
 
    proc{ClientFonc Msg Server}
-      case Msg 
-      of 0 then
+      if(Msg == 0) then
 	 for I in Sequence do % Sequence =  id ghost et id pacmans melanges
 
 	    local PacToKill EndOfGame in
 
 	       {Send Server decPacman(PacToKill)} %TODO 
           {Wait PacToKill}
-          {System.show 'ApresDecPacman'}
 	       for I in PacToKill do
-          {System.show 'AvantKillPacman'}
 		  {Send Server killPacman(I.1 [I.2] EndOfGame)}
-         {System.show 'ApresKillPacman'}
 		  if(EndOfGame) then
 		     {ClientFonc 1 Server}
 		  end
 
-          {System.show 'ApresEndOfGams'}
 	       end
 	    end
 	    
@@ -619,7 +616,12 @@ in
 	    {Send Server decPoint}
 	    {Send Server decBonus}
 	    {Send Server decHunt}
-	    {Delay 2000}
+       local B in 
+       {Send Server endOfGame(B)}
+       if(B) then 
+         {ClientFonc 1 Server}
+       end
+       end
 	    case I of pacman(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server movePacman(I NewPos)}
@@ -703,8 +705,9 @@ in
 	    end%end case pacman/ghost
 	 end%end for    
 	 {ClientFonc 0 Server}
-      [] 1 then %fin du jeu
+      else %[] 1 then %fin du jeu
 	 {Send Server whoWin}
+         {Delay 5000} % Ici il recommence Clientfonc et je ne vois pas pourquoi il fait ça
       end %end of cas
    end%end fun
 
@@ -821,14 +824,13 @@ in
       
       if(Input.isTurnByTurn) then
 	 local
-	    PosP PosG in
-	    PosP = {SpawnToIdPos IdPacman ListSpawnPacman} 
+	    PosPac PosG in
+	    PosPac = {SpawnToIdPos IdPacman ListSpawnPacman} 
 	    PosG = {SpawnToIdPos IdGhost ListSpawnGhost}
-	    Server = {NewPortObjectServer PosP PosG PointList BonusList classic 0 nil nil nil nil } % à compléter
+	    Server = {NewPortObjectServer PosPac PosG PointList BonusList classic 0 nil nil nil nil } % à compléter
               % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
 	 end %local
-
-	 {ClientFonc 0 Server}
+   {ClientFonc 0 Server}
 
       %MODE SIMULATNE MODE SIMULTANE MODE SIMULTANE
       %else 
