@@ -3,6 +3,7 @@ import
    QTk at 'x-oz://system/wp/QTk.ozf'
    Input
    Browser
+   OS
 export
    portWindow:StartWindow
 define
@@ -39,6 +40,18 @@ define
    DrawMap
 
    StateModification
+
+   Canvas
+   MainURL={OS.getCWD}
+   %PacManImg={QTk.newImage photo(url:MainURL#"/pacman.gif")}
+   %CoinIm = {QTk.newImage photo(url:MainURL#"/coin.gif")}
+   WallIm = {QTk.newImage photo(url:"/wall.gif")}
+   %StarIm = {QTk.newImage photo(url:MainURL#"/star.gif")}
+   %RedIm = {QTk.newImage photo(url:MainURL#"/red.gif")}
+   %BlueIm = {QTk.newImage photo(url:MainURL#"/blue.gif")} 
+   %WhiteIm = {QTk.newImage photo(url:MainURL#"/white.gif")}
+   %FearIm = {QTk.newImage photo(url:MainURL#"/fear.gif")}
+   %OrangeIm = {QTk.newImage photo(url:MainURL#"/orange.gif")}
 
 in
 
@@ -85,7 +98,7 @@ in
    
 %%%%% Squares of path and wall
    Squares = square(0:label(text:"" width:1 height:1 bg:c(0 0 204))
-		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(0 0 0))
+		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(0 0 0) image:WallIm)
 		    2:label(text:"" width:1 height:1 bg:c(0 0 150))
 		    3:label(text:"" width:1 height:1 bg:c(0 0 255))
 		    4:label(text:"" width:1 height:1 bg:c(0 150 150))
