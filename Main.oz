@@ -335,9 +335,9 @@ in
 
    fun{DecHunt State}
       if State.hT == 1 then 
-	 {Diffusion PortsPacman mode(classic)} 
-	 {Send WindowPort mode(classic)}
-	 {Diffusion PortsGhost mode(classic)}
+	 {Diffusion PortsPacman setMode(classic)} 
+	 {Send WindowPort setMode(classic)}
+	 {Diffusion PortsGhost setMode(classic)}
 	 {AdjoinList State [hT#0]}
       else
 	 if(State.hT == 0) then
@@ -367,7 +367,9 @@ in
    % EndOfGame : variable qui sera liée à true si c'est la fin du jeu, et à false sinon
    % State =  state(posPac:PosPac posG:PosG posB:PosB pos:PosP m:Mode hT:HuntTime pacT:PacTime gT:GTime bT:BTime pT:PTime
    fun {KillPacman IdGhost ListPacmans EndOfGame State}
+      {Browser.browse IdGhost}
       PortPac
+      
    in
       case ListPacmans
       of IdPacman|T then
@@ -448,8 +450,8 @@ in
 % La fonction prend un point en arguement et retourne la liste des ghost sur cette case. L'etat n'est pas modifié
    fun{GhostOn Pos Ret State} 
       fun{GhostOnLoop Pos List}
-	 case List of H|T then
-	    if(H == Pos) then H|{GhostOnLoop Pos T}
+      case List of Id#pt(x:X y:Y)|T then
+       if(X == Pos.x andthen Y == Pos.y) then Id|{GhostOnLoop Pos T}
 	    else {GhostOnLoop Pos T}
 	    end
 	 []nil then nil
@@ -463,8 +465,8 @@ in
    /* Meme principe que GhostOn */
    fun{PacmanOn Pos Ret State} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
       fun{PacmanOnLoop Pos List}
-	 case List of H|T then
-	    if(H == Pos) then H|{PacmanOnLoop Pos T}
+	 case List of Id#pt(x:X y:Y)|T then
+	    if(X == Pos.x andthen Y == Pos.y) then Id|{PacmanOnLoop Pos T}
 	    else {PacmanOnLoop Pos T}
 	    end
 	 []nil then nil
@@ -489,9 +491,9 @@ in
    fun{WinBonus Id Bonus State}
       {Send WindowPort hideBonus(Bonus)}
       {Diffusion PortsPacman bonusRemoved(Bonus)}
-      {Diffusion PortsPacman mode(hunt)}
-      {Diffusion PortsGhost mode(hunt)}
-      {Send WindowPort mode(hunt)}
+      {Diffusion PortsPacman setMode(hunt)}
+      {Diffusion PortsGhost setMode(hunt)}
+      {Send WindowPort setMode(hunt)}
       {AdjoinList State [m#hunt hT#((Input.huntTime)*(Input.nbPacman + Input.nbGhost))]}
    end
 
@@ -558,7 +560,7 @@ in
       [] ghostOn(Pos ?List)|T then {ServerProc T {GhostOn Pos ?List State}} % Flo c'est fait
       [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn Pos ?List State }} % Flo c'est fait
       [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos Point State}} %Flo c'est fait
-      [] killPacman(ListPacmans IdGhost EndOfGame)|T then {ServerProc T {KillPacman ListPacmans IdGhost EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
+      [] killPacman(IdGhost ListPacmans EndOfGame)|T then {ServerProc T {KillPacman IdGhost  ListPacmans EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point )|T then {ServerProc T {WinPoint Id Point State }}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State }} %Flo c'est fait
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
@@ -567,15 +569,18 @@ in
       end
    end
 
+
    proc{ClientFonc Msg Server}
       case Msg 
       of 0 then
-	     {Send Server decPacman} %TODO 
-	     {Send Server decGhost}
-	     {Send Server decPoint}
-	      {Send Server decBonus}
-	      {Send Server decHunt}
 	 for I in Sequence do % Sequence =  id ghost et id pacmans melanges
+
+        {Send Server decPacman} %TODO 
+        {Send Server decGhost}
+        {Send Server decPoint}
+         {Send Server decBonus}
+         {Send Server decHunt}
+         {Delay 1500}
 	    case I of pacman(id:Id color:_ name:_) then
 	       local NewPos in
 		  {Send Server movePacman(I NewPos)}
@@ -583,22 +588,24 @@ in
 		     local Mode in
 			{Send Server huntMode(Mode)}
 			if(Mode == classic) then
-			   local List in
-			      {Send Server ghostOn(NewPos List)}
-			      if(List \= nil) then
-				 local EndOfGame in
-				    {Send Server killPacman({List.nth List ({OS.rand} mod {List.length List})+1} [I]  EndOfGame)} /*IdGhost =  Un random sur un élément de la liste pour savoir qui on prends*/
-				    if(EndOfGame) then
+			   local Liste in
+			      {Send Server ghostOn(NewPos Liste)}
+               {Browser.browse Liste}
+			      if(Liste \= nil) then
+				     local EndOfGame in
+				        {Send Server killPacman({List.nth Liste ({OS.rand} mod {List.length Liste})+1} [I]  EndOfGame)} /*IdGhost =  Un random sur un élément de la liste pour savoir qui on prends*/
+				      if(EndOfGame) then
 				       {ClientFonc 1 Server}
 				    end % if
 				 end % local
 			      end % if
 			   end %  local
 			else %mode hunt
-			   local List in
-			      {Send Server ghostOn(NewPos List)}
-			      if(List \= nil) then
-				 {Send Server killGhost(I List)}
+			   local Liste in
+			      {Send Server ghostOn(NewPos Liste)}
+               {Browser.browse Liste}
+			      if(Liste \= nil) then
+				 {Send Server killGhost(I Liste)}
 			      end % if
 			   end % local
 			end % if-else
@@ -623,11 +630,12 @@ in
 		     local Mode in
 			{Send Server huntMode(Mode)}
 			if (Mode==classic) then
-			   local List in
-			      {Send Server pacmanOn(NewPos List)}
-			      if(List \= nil) then
+			   local Liste in
+			      {Send Server pacmanOn(NewPos Liste)}
+               {Browser.browse Liste}
+			      if(Liste \= nil) then
 				 local EndOfGame in
-				    {Send Server  killPacman(I List EndOfGame)} %La meme qu'au dessus dans case pacman
+				    {Send Server  killPacman(I Liste EndOfGame)} %La meme qu'au dessus dans case pacman
 				    if(EndOfGame) then
 				       {ClientFonc 1 Server}
 				    end % if
@@ -635,11 +643,12 @@ in
 			      end % if
 			   end % local
 			else % Mode hunt
-			   local List in
-			      {Send Server pacmanOn(NewPos ?List)}
-			      if(List \= nil) then
+			   local Liste in
+			      {Send Server pacmanOn(NewPos ?Liste)}
+               {Browser.browse Liste}
+			      if(Liste \= nil) then
                       %-> Random dans la liste le tueur.
-				 {Send Server killGhost({List.nth List ({OS.rand} mod {List.length List})+1} [I])}%La meme qu'au dessus
+				 {Send Server killGhost({List.nth Liste ({OS.rand} mod {List.length Liste})+1} [I])}%La meme qu'au dessus
 			      end % if
 			   end % local
 			end % if-else
