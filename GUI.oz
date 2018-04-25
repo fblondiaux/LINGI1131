@@ -46,12 +46,13 @@ define
    %PacManImg={QTk.newImage photo(url:MainURL#"/pacman.gif")}
    %CoinIm = {QTk.newImage photo(url:MainURL#"/coin.gif")}
    WallIm = {QTk.newImage photo(url:MainURL#"/wall.gif")}
-   %StarIm = {QTk.newImage photo(url:MainURL#"/star.gif")}
-   %RedIm = {QTk.newImage photo(url:MainURL#"/red.gif")}
-   %BlueIm = {QTk.newImage photo(url:MainURL#"/blue.gif")} 
-   %WhiteIm = {QTk.newImage photo(url:MainURL#"/white.gif")}
-   %FearIm = {QTk.newImage photo(url:MainURL#"/fear.gif")}
-   %OrangeIm = {QTk.newImage photo(url:MainURL#"/orange.gif")}
+   AliceIm = {QTk.newImage photo(url:MainURL#"/alice.gif")}
+   CatIm = {QTk.newImage photo(url:MainURL#"/chat.gif")}
+   LapinIm = {QTk.newImage photo(url:MainURL#"/lapin.gif")}
+   PotionIm = {QTk.newImage photo(url:MainURL#"/potion.gif")} 
+   PointIm = {QTk.newImage photo(url:MainURL#"/cookie.gif")}
+   GhostIm = {QTk.newImage photo(url:MainURL#"/carte.gif")}
+   HuntIm = {QTk.newImage photo(url:MainURL#"/cartenoir.gif")}
 
 in
 
@@ -97,11 +98,11 @@ in
 
    
 %%%%% Squares of path and wall
-   Squares = square(0:label(text:"" width:1 height:1 bg:c(0 0 204))
-		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(0 0 0) image:WallIm)
+   Squares = square(0:label(text:"" width:1 height:1 bg:c(58 157 35))
+		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(27 79 8) )
 		    2:label(text:"" width:1 height:1 bg:c(0 0 150))
 		    3:label(text:"" width:1 height:1 bg:c(0 0 255))
-		    4:label(text:"" width:1 height:1 bg:c(0 150 150))
+		    4:label(text:"" width:1 height:1 bg:c(0 150 150) image:PotionIm)
 		   )
    
 %%%%% Function to draw the map
@@ -128,10 +129,13 @@ in
 
 %%%%% Init the pacman & ghost
    fun{InitPacman Grid ID}
-      Handle HandleLife HandleScore Id Color LabelPacman LabelLife LabelScore
+      Handle HandleLife HandleScore Id Color LabelPacman LabelLife LabelScore Choose Image
    in
+      Image = [AliceIm LapinIm CatIm]
+      Choose = {List.nth Image ({OS.rand} mod {List.length Image})+1}
       pacman(id:Id color:Color name:_) = ID
-      LabelPacman = label(text:"P" handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
+
+      LabelPacman = label(text:"P" handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5 image:Choose)
       LabelLife = label(text:Input.nbLives borderwidth:5 handle:HandleLife relief:solid bg:Color ipadx:5 ipady:5)
       LabelScore = label(text:0 borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       {Grid.grid configure(LabelPacman row:0 column:0 sticky:wesn)}
@@ -167,7 +171,7 @@ in
       Handle Color LabelGhost
    in
       ghost(id:_ color:Color name:_) = ID
-      LabelGhost = label(text:"G" handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
+      LabelGhost = label(text:"G" handle:Handle borderwidth:5 relief:raised bg:c(219 23 2) ipadx:5 ipady:5 image:GhostIm)
       {Grid.grid configure(LabelGhost row:0 column:0 sticky:wesn)}
       {Grid.grid remove(Handle)}
       guiGhost(id:ID ghost:Handle color:Color)
@@ -209,7 +213,7 @@ in
    fun{InitBonus Grid Position}
       Handle Label
    in
-      Label = label(text:"" height:1 width:1 handle:Handle bg:red)
+      Label = label(text:"" height:1 width:1 handle:Handle bg:red image:PotionIm)
       {Grid.grid configure(Label row:0 column:0)}
       {Grid.grid remove(Handle)}
       guiBonus(position:Position bonus:Handle)
@@ -231,7 +235,7 @@ in
    fun{InitPoint Grid Position}
       Handle Label
    in
-      Label = label(text:"" height:1 width:1 handle:Handle bg:white)
+      Label = label(text:"" height:1 width:1 handle:Handle bg:white image:PointIm)
       {Grid.grid configure(Label row:0 column:0)}
       {Grid.grid remove(Handle)}
       guiPoint(position:Position point:Handle)
@@ -256,9 +260,9 @@ in
       [] guiGhost(id:_ ghost:Handle color:Color)|Next then
 	 case M
 	 of classic then
-	    {Handle set(bg:Color)}
+	    {Handle set(image:GhostIm)}
 	 [] hunt then
-	    {Handle set(bg:blue)}
+	    {Handle set(image:HuntIm)}
 	 end
 	 State.1|{ChangeMode M Next}
       end
