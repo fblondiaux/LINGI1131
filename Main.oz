@@ -317,6 +317,7 @@ in
       end
    in
       if State.pacT == nil then
+      PacToKill = nil
 	 State
       else
 	 Rec = {DecListPacman State.pacT rec(active:nil inactive:nil pacToKill:nil)}
@@ -598,12 +599,19 @@ in
 	 for I in Sequence do % Sequence =  id ghost et id pacmans melanges
 
 	    local PacToKill EndOfGame in
+
 	       {Send Server decPacman(PacToKill)} %TODO 
+          {Wait PacToKill}
+          {System.show 'ApresDecPacman'}
 	       for I in PacToKill do
+          {System.show 'AvantKillPacman'}
 		  {Send Server killPacman(I.1 [I.2] EndOfGame)}
+         {System.show 'ApresKillPacman'}
 		  if(EndOfGame) then
 		     {ClientFonc 1 Server}
 		  end
+
+          {System.show 'ApresEndOfGams'}
 	       end
 	    end
 	    
@@ -820,7 +828,7 @@ in
               % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
 	 end %local
 
-	 %{ClientFonc 0 Server}
+	 {ClientFonc 0 Server}
 
       %MODE SIMULATNE MODE SIMULTANE MODE SIMULTANE
       %else 

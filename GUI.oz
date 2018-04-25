@@ -45,7 +45,7 @@ define
    MainURL={OS.getCWD}
    %PacManImg={QTk.newImage photo(url:MainURL#"/pacman.gif")}
    %CoinIm = {QTk.newImage photo(url:MainURL#"/coin.gif")}
-   WallIm = {QTk.newImage photo(url:"/wall.gif")}
+   WallIm = {QTk.newImage photo(url:MainURL#"/wall.gif")}
    %StarIm = {QTk.newImage photo(url:MainURL#"/star.gif")}
    %RedIm = {QTk.newImage photo(url:MainURL#"/red.gif")}
    %BlueIm = {QTk.newImage photo(url:MainURL#"/blue.gif")} 
