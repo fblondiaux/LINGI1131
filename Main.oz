@@ -5,6 +5,7 @@ import
    PlayerManager
    Browser
    OS
+   System
 define
    CreatePortPacman
    CreatePortGhost
@@ -367,16 +368,18 @@ in
    % EndOfGame : variable qui sera liée à true si c'est la fin du jeu, et à false sinon
    % State =  state(posPac:PosPac posG:PosG posB:PosB pos:PosP m:Mode hT:HuntTime pacT:PacTime gT:GTime bT:BTime pT:PTime
    fun {KillPacman IdGhost ListPacmans EndOfGame State}
-      {Browser.browse IdGhost}
       PortPac
       
    in
+      {System.show "IDGhost"}
+      {System.show IdGhost}
+
       case ListPacmans
       of IdPacman|T then
 	 PortPac = {List.nth PortsPacman IdPacman.id}
          % prévenir le pacman qu'il a été tué
 	 local NewLife NewScore in
-	    {Send PortPac gotKilled(_ NewLife NewScore)}
+	      {Send PortPac gotKilled(_ NewLife NewScore)}
      % prévénir tous les ghosts, avec un message différent pour celui qui a tué le pacman
          {Diffusion PortsGhost deathPacman(IdPacman)}
          {Send {List.nth PortsGhost IdGhost.id} killPacman(IdPacman)}
@@ -389,12 +392,11 @@ in
 		  EndOfGame = true
 		  {AdjoinList State [posPac#nil]}
 	       else
-		  {KillPacman T IdGhost EndOfGame {AdjoinList State [posPac#{Delete IdPacman State.posPac}]}}
+		  {KillPacman ghost(id:IdGhost.id color:IdGhost.color name:IdGhost.name) T  EndOfGame {AdjoinList State [posPac#{Delete IdPacman State.posPac}]}}
 	       end % if
 	    else 
          % renvoi du State dans lequel on a retiré IdPacman de posPac et ajouté dans pacTime
-	       {KillPacman T IdGhost EndOfGame
-		{AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#{Append State.pacT [IdPacman#(Input.respawnTimePacman *(Input.nbPacman + Input.nbGhost))]}]}}
+	       {KillPacman ghost(id:IdGhost.id color:IdGhost.color name:IdGhost.name) T  EndOfGame {AdjoinList State [posPac#{Delete IdPacman State.posPac} pacT#{Append State.pacT [IdPacman#(Input.respawnTimePacman *(Input.nbPacman + Input.nbGhost))]}]}}
 	    end % if
 	 end %local
       [] nil then
@@ -539,6 +541,7 @@ in
       IdCheck in
       {Send {List.nth PortsGhost Id.id} move(IdCheck NewPos)}
       if(IdCheck == null) then
+
 	 State
       else
 	 {Diffusion PortsPacman ghostPos(IdCheck NewPos)}
@@ -560,7 +563,7 @@ in
       [] ghostOn(Pos ?List)|T then {ServerProc T {GhostOn Pos ?List State}} % Flo c'est fait
       [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn Pos ?List State }} % Flo c'est fait
       [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos Point State}} %Flo c'est fait
-      [] killPacman(IdGhost ListPacmans EndOfGame)|T then {ServerProc T {KillPacman IdGhost  ListPacmans EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
+      [] killPacman(IdGhost ListPacmans EndOfGame)|T then {ServerProc T {KillPacman IdGhost ListPacmans EndOfGame State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point )|T then {ServerProc T {WinPoint Id Point State }}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State }} %Flo c'est fait
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
@@ -626,7 +629,7 @@ in
 	    []ghost(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server moveGhost(I ?NewPos)}
-		  if(NewPos \= nil) then
+		  if(NewPos \= null) then
 		     local Mode in
 			{Send Server huntMode(Mode)}
 			if (Mode==classic) then
