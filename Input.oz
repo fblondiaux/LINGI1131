@@ -51,23 +51,15 @@ in
 
 %%%% Description of the map %%%%
    
-   % NRow = 7
-   % NColumn = 12
-   % Map = [[1 1 1 1 1 1 1 1 1 1 1 1]
-   % 	  [1 0 0 0 0 0 3 0 0 0 0 1]
-   % 	  [1 0 1 1 1 0 1 1 0 1 0 1]
-   % 	  [1 0 0 0 1 0 0 1 0 1 0 1]
-   % 	  [1 0 1 0 1 1 0 1 0 1 0 1]
-   % 	  [1 4 1 0 2 0 0 0 2 0 0 1]
-   % 	  [1 1 1 1 1 1 1 1 1 1 1 1]]
-
-   NRow = 5
-   NColumn = 5
-   Map = [ [1 1 1 1 1]
-	   [1 2 4 0 1]
-	   [1 1 1 0 1]
-	   [1 1 0 0 1]
-	   [1 1 1 1 1]]
+   NRow = 7
+   NColumn = 12
+   Map = [[1 1 1 1 1 1 1 1 1 1 1 1]
+	  [1 0 0 0 0 0 4 0 0 0 0 1]
+	  [1 0 1 1 1 0 1 1 0 1 0 1]
+	  [1 0 0 0 1 0 0 1 0 1 0 1]
+	  [1 0 1 0 1 1 0 1 0 1 0 1]
+	  [1 4 1 0 2 0 3 0 2 0 0 1]
+	  [1 1 1 1 1 1 1 1 1 1 1 1]]
 
 %%%% Respawn times %%%%
    
@@ -89,12 +81,9 @@ in
    
 %%%% Players description %%%%
 
-   %NbPacman = 2
-   NbPacman = 1
-   %Pacman = [pacman000random pacman000random]
-   Pacman = [pacman000random]
-   %ColorPacman = [yellow red]
-   ColorPacman = [red]
+   NbPacman = 2
+   Pacman = [pacman000random pacman000random]
+   ColorPacman = [yellow red]
    NbGhost = 1
    Ghost = [ghost000random]
    ColorGhost = [green]% black red white]
