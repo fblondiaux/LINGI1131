@@ -583,7 +583,7 @@ in
         {Send Server decPoint}
          {Send Server decBonus}
          {Send Server decHunt}
-         {Delay 1500}
+         {Delay 2000}
 	    case I of pacman(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server movePacman(I NewPos)}
@@ -786,7 +786,7 @@ in
               % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
        	 end %local
 
-	 %{ClientFonc 0 Server}
+	 {ClientFonc 0 Server}
 
       %MODE SIMULATNE MODE SIMULTANE MODE SIMULTANE
       %else 
