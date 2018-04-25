@@ -41,16 +41,15 @@ define
 
    StateModification
 
-   Canvas
    MainURL={OS.getCWD}
    %PacManImg={QTk.newImage photo(url:MainURL#"/pacman.gif")}
-   %CoinIm = {QTk.newImage photo(url:MainURL#"/coin.gif")}
-   %WallIm = {QTk.newImage photo(url:MainURL#"/wall.gif")}
+   SpawnP = {QTk.newImage photo(url:MainURL#"/spawnP.gif")}
+   SpawnG= {QTk.newImage photo(url:MainURL#"/spawnG.gif")}
    AliceIm = {QTk.newImage photo(url:MainURL#"/alice.gif")}
    CatIm = {QTk.newImage photo(url:MainURL#"/chat.gif")}
    LapinIm = {QTk.newImage photo(url:MainURL#"/lapin.gif")}
    PotionIm = {QTk.newImage photo(url:MainURL#"/potion.gif")} 
-   PointIm = {QTk.newImage photo(url:MainURL#"/cookie.gif")}
+   PointIm = {QTk.newImage photo(url:MainURL#"/champ.gif")}
    GhostIm = {QTk.newImage photo(url:MainURL#"/carte.gif")}
    HuntIm = {QTk.newImage photo(url:MainURL#"/cartenoir.gif")}
 
@@ -61,34 +60,34 @@ in
       Grid GridLife GridScore Toolbar Desc DescLife DescScore Window
    in
       Toolbar=lr(glue:we tbbutton(text:"Quit" glue:w action:toplevel#close))
-      Desc=grid(handle:Grid height:50*Input.nRow width:50*Input.nColumn)
-      DescLife=grid(handle:GridLife height:100 width:50*Input.nbPacman)
-      DescScore=grid(handle:GridScore height:100 width:50*Input.nbPacman)
+      Desc=grid(handle:Grid height:55*Input.nRow width:55*Input.nColumn)
+      DescLife=grid(handle:GridLife height:100 width:55*Input.nbPacman)
+      DescScore=grid(handle:GridScore height:100 width:55*Input.nbPacman)
       Window={QTk.build td(Toolbar Desc DescLife DescScore)}
   
       {Window show}
 
       % configure rows and set headers
       for N in 1..Input.nRow do
-	 {Grid rowconfigure(N minsize:50 weight:0 pad:5)}
+	 {Grid rowconfigure(N minsize:55 weight:0 pad:5)}
       end
       % configure columns and set headers
       for N in 1..Input.nColumn do
-	 {Grid columnconfigure(N minsize:50 weight:0 pad:5)}
+	 {Grid columnconfigure(N minsize:55 weight:0 pad:5)}
       end
       % configure lifeboard
-      {GridLife rowconfigure(1 minsize:50 weight:0 pad:5)}
-      {GridLife columnconfigure(1 minsize:50 weight:0 pad:5)}
+      {GridLife rowconfigure(1 minsize:55 weight:0 pad:5)}
+      {GridLife columnconfigure(1 minsize:55 weight:0 pad:5)}
       {GridLife configure(label(text:"life" width:1 height:1) row:1 column:1 sticky:wesn)}
       for N in 1..(Input.nbPacman) do
-	 {GridLife columnconfigure(N+1 minsize:50 weight:0 pad:5)}
+	 {GridLife columnconfigure(N+1 minsize:55 weight:0 pad:5)}
       end
       % configure scoreboard
-      {GridScore rowconfigure(1 minsize:50 weight:0 pad:5)}
-      {GridScore columnconfigure(1 minsize:50 weight:0 pad:5)}
+      {GridScore rowconfigure(1 minsize:55 weight:0 pad:5)}
+      {GridScore columnconfigure(1 minsize:55 weight:0 pad:5)}
       {GridScore configure(label(text:"score" width:1 height:1) row:1 column:1 sticky:wesn)}
       for N in 1..(Input.nbPacman) do
-	 {GridScore columnconfigure(N+1 minsize:50 weight:0 pad:5)}
+	 {GridScore columnconfigure(N+1 minsize:55 weight:0 pad:5)}
       end
       
       {DrawMap Grid}
@@ -100,9 +99,9 @@ in
 %%%%% Squares of path and wall
    Squares = square(0:label(text:"" width:1 height:1 bg:c(58 157 35))
 		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(27 79 8) )
-		    2:label(text:"" width:1 height:1 bg:c(0 0 150))
-		    3:label(text:"" width:1 height:1 bg:c(0 0 255))
-		    4:label(text:"" width:1 height:1 bg:c(0 150 150) image:PotionIm)
+		    2:label(text:"" width:1 height:1 bg:c(0 0 0) image:SpawnP)
+		    3:label(text:"" width:1 height:1 bg:c(0 0 0) image:SpawnG)
+		    4:label(text:"" width:1 height:1 bg:c(153 50 204))
 		   )
    
 %%%%% Function to draw the map
@@ -171,7 +170,7 @@ in
       Handle Color LabelGhost
    in
       ghost(id:_ color:Color name:_) = ID
-      LabelGhost = label(text:"G" handle:Handle borderwidth:5 relief:raised bg:c(219 23 2) ipadx:5 ipady:5 image:GhostIm)
+      LabelGhost = label(text:"G" handle:Handle borderwidth:5 relief:raised bg:c(255 255 255) ipadx:5 ipady:5 image:GhostIm)
       {Grid.grid configure(LabelGhost row:0 column:0 sticky:wesn)}
       {Grid.grid remove(Handle)}
       guiGhost(id:ID ghost:Handle color:Color)
@@ -213,7 +212,8 @@ in
    fun{InitBonus Grid Position}
       Handle Label
    in
-      Label = label(text:"" height:1 width:1 handle:Handle bg:red image:PotionIm)
+
+      Label = label(text:"" handle:Handle image:PotionIm)
       {Grid.grid configure(Label row:0 column:0)}
       {Grid.grid remove(Handle)}
       guiBonus(position:Position bonus:Handle)
@@ -235,7 +235,8 @@ in
    fun{InitPoint Grid Position}
       Handle Label
    in
-      Label = label(text:"" height:1 width:1 handle:Handle bg:white image:PointIm)
+
+      Label = label(text:"" handle:Handle image:PointIm)
       {Grid.grid configure(Label row:0 column:0)}
       {Grid.grid remove(Handle)}
       guiPoint(position:Position point:Handle)
@@ -257,12 +258,12 @@ in
    fun{ChangeMode M State}
       case State
       of nil then nil
-      [] guiGhost(id:_ ghost:Handle color:Color)|Next then
+      [] guiGhost(id:_ ghost:Handle color:_)|Next then
 	 case M
 	 of classic then
-	    {Handle set(image:GhostIm)}
+	    {Handle set(bg:c(255 255 255) image:GhostIm)}
 	 [] hunt then
-	    {Handle set(image:HuntIm)}
+	    {Handle set(bg:c(105 105 105) image:HuntIm)}
 	 end
 	 State.1|{ChangeMode M Next}
       end

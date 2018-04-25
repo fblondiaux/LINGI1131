@@ -3,9 +3,7 @@ import
    GUI
    Input
    PlayerManager
-   Browser
    OS
-   System
 define
    CreatePortPacman
    CreatePortGhost
@@ -357,12 +355,12 @@ in
 	 {Diffusion PortsPacman setMode(classic)} 
 	 {Send WindowPort setMode(classic)}
 	 {Diffusion PortsGhost setMode(classic)}
-	 {AdjoinList State [hT#0]}
+	 {AdjoinList State [hT#0 m#classic]}
       else
 	 if(State.hT == 0) then
 	    State
 	 else 
-	    {AdjoinList State [hT#State.hT-1]}
+	    {AdjoinList State [hT#(State.hT-1)]}
 	 end
       end
    end
@@ -388,8 +386,6 @@ in
       PortPac
       
    in
-      {System.show "IDGhost"}
-      {System.show IdGhost}
 
       case ListPacmans
       of IdPacman|T then
@@ -567,8 +563,6 @@ in
    end
 
    proc {ServerProc Msg State}
-      {System.show Msg} 
-      {System.show State}
       case Msg 
       of decPacman(PacToKill)|T then {ServerProc T {DecPacman PacToKill State}} 
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
@@ -581,7 +575,7 @@ in
       [] ghostOn(Pos ?List)|T then {ServerProc T {GhostOn Pos ?List State}} % Flo c'est fait
       [] pacmanOn(Pos ?List)|T then {ServerProc T {PacmanOn Pos ?List State }} % Flo c'est fait
       [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos Point State}} %Flo c'est fait
-      [] killPacman(IdGhost ListPacmans)|T then {System.show State}{ServerProc T {KillPacman IdGhost ListPacmans State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
+      [] killPacman(IdGhost ListPacmans)|T then {ServerProc T {KillPacman IdGhost ListPacmans State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point )|T then {ServerProc T {WinPoint Id Point State }}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State }} %Flo c'est fait
       [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
@@ -624,9 +618,6 @@ in
 			      if(Liste \= nil) then
 				 local IdGHost in
 				    IdGHost ={List.nth Liste ({OS.rand} mod {List.length Liste})+1}
-				    {System.show "killPacman valeur de IDGHost"}
-				    {System.show IdGHost}
-
 				    {Send Server killPacman(IdGHost [I])} /*IdGhost =  Un random sur un élément de la liste pour savoir qui on prends*/
 
 				 end % local
@@ -666,10 +657,6 @@ in
 			      {Send Server pacmanOn(NewPos Liste)}
                %{Browser.browse Liste}
 			      if(Liste \= nil) then
-				 
-
-				    {System.show "killPacman valeur de IDGHost"}
-				    {System.show I}
 				    {Send Server  killPacman(I Liste)} %La meme qu'au dessus dans case pacman
 
 
@@ -741,7 +728,7 @@ in
       PSList = MapRecord.psl % pacman spawn list
       GSList = MapRecord.gsl % ghost spawn list
       BonusList = MapRecord.bl
-
+      
            % Assignation des spawns pour les pacmans et ghosts
       local N M in
 	 N = {List.length PSList}
@@ -797,22 +784,22 @@ in
 
       if ({List.length PortsGhost} > 1) then
 	 for Port in PortsGhost do
-	    local R P ID S in
+	    local R S in
 	       {Send Port getId(R)}
 	       {Send WindowPort initGhost(R)}
 	       S = {List.nth ListSpawnGhost R.id} 
 	       {Send Port assignSpawn(S)}
-	       {Send Port spawn(ID P)} % TODO : vérifier les valeurs ID et P
+	       {Send Port spawn(_ _)} % TODO : vérifier les valeurs ID et P
 	       {Send WindowPort spawnGhost(R S)}
 	       {Diffusion PortsPacman ghostPos(R S)} % Diffusion du spawn aux pacmans
 	    end
 	 end
       else
-	 local ID P S in
+	 local S in
 	    {Send WindowPort initGhost(IdGhost.1)}
 	    S = {List.nth ListSpawnGhost ({OS.rand} mod {List.length GSList})+1 }
 	    {Send PortsGhost.1 assignSpawn(S)}
-	    {Send PortsGhost.1 spawn(ID P)}
+	    {Send PortsGhost.1 spawn(_ _)}
 	    {Send WindowPort spawnGhost(IdGhost.1 S)}
 	    {Diffusion PortsPacman ghostPos(IdGhost.1 S)} % Diffusion du spawn aux pacmans
 	 end
