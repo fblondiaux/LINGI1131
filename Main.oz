@@ -135,7 +135,7 @@ in
 
    /*
    Diffuse un message à toute une liste de ports
-   In : Liste de port et le message à diffuser
+   In : Liste de ports et le message à diffuser
    Out : /
    */
    proc {Diffusion PortsList Message}
@@ -424,7 +424,7 @@ in
       [] nil then State
       end
    end
-   /* La fonction prends un point en argument, si il y en à un dans le state, elle le retire et met dans la liste à décrémenter
+   /* La fonction prends un point <position> en argument, si il y en a un dans le state, elle le retire et met dans la liste à décrémenter
    si pas l'etat ne change pas et ret est bound à false */
    fun{PointOn Pt Ret State}
       if({List.member Pt State.posP}) then %Si p est dans la liste posP
@@ -522,7 +522,7 @@ in
 
    /*Demande au pacman sa nouvelle position,
    préviens les ghost et le déplace sur la map*/
-
+   % Id est de type <pacman>
    fun{MovePacman Id NewPos State}
       IdCheck in
       {Send {List.nth PortsPacman Id.id} move(IdCheck NewPos)}
@@ -581,7 +581,7 @@ in
          {Send Server decBonus}
          {Send Server decHunt}
          {Delay 1500}
-	    case I of pacman(id:Id color:_ name:_) then
+	    case I of pacman(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server movePacman(I NewPos)}
 		  if(NewPos \= null) then
@@ -623,7 +623,7 @@ in
 		     end % local Mode
 		  end %If pos != null
 	       end % local NewPos
-	    []ghost(id:Id color:_ name:_) then
+	    []ghost(id:_ color:_ name:_) then
 	       local NewPos in
 		  {Send Server moveGhost(I ?NewPos)}
 		  if(NewPos \= nil) then
@@ -729,7 +729,7 @@ in
 
        if {List.length PortsPacman} > 1 then
        	 for Port in PortsPacman do
-       	    local R S Id Pos in
+       	    local R S in
        	       {Send Port getId(R)}
        	       {Send WindowPort initPacman(R)}
        	       S = {List.nth ListSpawnPacman R.id}
@@ -753,7 +753,7 @@ in
 
        if ({List.length PortsGhost} > 1) then
        	 for Port in PortsGhost do
-       	    local R ID P S in
+       	    local R P ID S in
        	       {Send Port getId(R)}
        	       {Send WindowPort initGhost(R)}
        	       S = {List.nth ListSpawnGhost R.id} 
@@ -783,7 +783,7 @@ in
               % {NewPortObjectServer PosP PosG PosPo PosB Mode HuntTime PacTime GTime BTime PTime}
        	 end %local
 
-	     {ClientFonc 0 Server}
+	 %{ClientFonc 0 Server}
 
       %MODE SIMULATNE MODE SIMULTANE MODE SIMULTANE
       %else 
