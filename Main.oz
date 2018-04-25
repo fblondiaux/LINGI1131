@@ -274,9 +274,9 @@ in
 		  {Send Port spawn(IdCheck PCheck)}
 		  {Diffusion PortsPacman ghostPos(IdCheck PCheck)}
 		  {Send WindowPort spawnGhost(IdCheck PCheck)}
-		  {DecListGhost T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+		  {DecListGhost T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
             
-	       else {DecListGhost T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+	       else {DecListGhost T {Record.adjoinAt Rec inactive Id#Time-1|Rec.inactive}}
 	       end
 	    end
 	 []nil then Rec
@@ -302,9 +302,9 @@ in
 		  {Send Port spawn(IdCheck PCheck)}
 		  {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
 		  {Send WindowPort spawnPacman(IdCheck PCheck)}
-		  {DecListPacman T {Record.adjoinAt active IdCheck#PCheck|Rec.active}}
+		  {DecListPacman T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
                   
-	       else {DecListPacman T {Record.adjoinAt Rec inactive IdCheck#Time-1|Rec.inactive}}
+	       else {DecListPacman T {Record.adjoinAt Rec inactive Id#Time-1|Rec.inactive}}
 	       end
 	    end
 	 []nil then Rec
@@ -561,7 +561,7 @@ in
    proc {ServerProc Msg State}
       {Browser.browse Msg} 
       {Browser.browse State}
-      {Delay 2000}
+      {Delay 1000}
       case Msg 
       of decPacman|T then {ServerProc T {DecPacman State}} %Flo c'est fait
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
