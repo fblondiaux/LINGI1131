@@ -283,8 +283,12 @@ in
 	 end
       end
    in
-      Rec = {DecListGhost State.gT rec(active:nil inactive:nil)}
-      {AdjoinList State [posG#{List.append Rec.active State.posG}  gT#Rec.inactive]}
+      if State.gT == nil then
+	 State
+      else
+	 Rec = {DecListGhost State.gT rec(active:nil inactive:nil)}
+	 {AdjoinList State [posG#{List.append Rec.active State.posG}  gT#Rec.inactive]}
+      end
    end
 
    fun{DecPacman State}
@@ -307,8 +311,12 @@ in
 	 end
       end
    in
-      Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
-      {AdjoinList State [posP#{List.append Rec.active State.posP} pacT#Rec.inactive]}   
+      if State.pacT == nil then
+	 State
+      else
+	 Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
+	 {AdjoinList State [posP#{List.append Rec.active State.posP} pacT#Rec.inactive]}
+      end
    end
 
      %L = [pt1#1 pt2#5]
@@ -551,6 +559,9 @@ in
    end
 
    proc {ServerProc Msg State}
+      {Browser.browse Msg} 
+      {Browser.browse State}
+      {Delay 2000}
       case Msg 
       of decPacman|T then {ServerProc T {DecPacman State}} %Flo c'est fait
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
@@ -609,7 +620,7 @@ in
 			else %mode hunt
 			   local Liste in
 			      {Send Server ghostOn(NewPos Liste)}
-               {Browser.browse Liste}
+               %{Browser.browse Liste}
 			      if(Liste \= nil) then
 				 {Send Server killGhost(I Liste)}
 			      end % if
@@ -638,7 +649,7 @@ in
 			if (Mode==classic) then
 			   local Liste in
 			      {Send Server pacmanOn(NewPos Liste)}
-               {Browser.browse Liste}
+               %{Browser.browse Liste}
 			      if(Liste \= nil) then
 				 local EndOfGame in
 
@@ -654,7 +665,7 @@ in
 			else % Mode hunt
 			   local Liste in
 			      {Send Server pacmanOn(NewPos ?Liste)}
-               {Browser.browse Liste}
+               %{Browser.browse Liste}
 			      if(Liste \= nil) then
                       %-> Random dans la liste le tueur.
 				 {Send Server killGhost({List.nth Liste ({OS.rand} mod {List.length Liste})+1} [I])}%La meme qu'au dessus
