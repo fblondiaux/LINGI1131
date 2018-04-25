@@ -291,34 +291,18 @@ in
       end
    end
 
-   fun{DecPacman EndOfGame State}
+   fun{DecPacman State}
       Rec
-      fun{DecListPacman ?EOfG L Rec}
+      fun{DecListPacman L Rec}
 	 case L of Id#Time|T then
             
 	    local Port IdCheck PCheck in
 	       if Time == 1 then
 		  Port ={List.nth PortsPacman Id.id}
 		  {Send Port spawn(IdCheck PCheck)}
-		  local Ret State2 State3 EndOfGame2 in
-		     State2 = {GhostOn(PCheck Ret State)}
-		     if Ret \= nil then
-			State3 = {KillPacman {List.nth Ret ({OS.rand} mod {List.length Ret})+1} [IdCheck] EndOfGame State2}
-			if(EndOfGame2) then
-			   EOfG = EndOfGame2
-			   State3
-			else
-			   
-			end
-			
-			
-			
-		     else	
-			{Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
-			{Send WindowPort spawnPacman(IdCheck PCheck)}
-			{DecListPacman T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
-		     end
-		     
+		  {Diffusion PortsGhost pacmanPos(IdCheck PCheck)}
+		  {Send WindowPort spawnPacman(IdCheck PCheck)}
+		  {DecListPacman T {Record.adjoinAt Rec active IdCheck#PCheck|Rec.active}}
                   
 	       else {DecListPacman T {Record.adjoinAt Rec inactive Id#Time-1|Rec.inactive}}
 	       end
@@ -331,7 +315,7 @@ in
 	 State
       else
 	 Rec = {DecListPacman State.pacT rec(active:nil inactive:nil)}
-	 {AdjoinList State [posPac#{List.append Rec.active State.posP} pacT#Rec.inactive]}
+	 {AdjoinList State [posP#{List.append Rec.active State.posP} pacT#Rec.inactive]}
       end
    end
 
@@ -411,7 +395,6 @@ in
 	    {Send WindowPort hidePacman(IdPacman)}
 	    {Send WindowPort scoreUpdate(IdPacman NewScore)}
 	    {Send WindowPort lifeUpdate(IdPacman NewLife)}
-	    {System.show NewLife}
 	    if NewLife == 0 then % le pacman est définitivement mort
 	       if {List.length State.posPac} == 1 andthen State.pacT == nil then % il était le seul pacman non définitvement mort
 		  EndOfGame = true
