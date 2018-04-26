@@ -19,6 +19,11 @@ test: Input.ozf PlayerManager.ozf GUI.ozf Main.oz Ghost000random.ozf Pacman000ra
 		# Pour le mac de Nono : 
 		#/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Main.oz
 		#/Applications/Mozart2.app/Contents/Resources/bin/ozengine Main.ozf
+ghost: Input.ozf PlayerManager.ozf GUI.ozf Main.oz Ghost000other.oz Pacman000random.ozf
+		ozc -c Ghost000other.oz
+		#ozc -c Pacman000other.oz
+		ozc -c Main.oz
+		ozengine Main.ozf
 
 clear:
 	rm Input.ozf

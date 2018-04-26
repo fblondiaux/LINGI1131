@@ -26,27 +26,50 @@ define
    KillGhost
    DeathGhost
    SetMode
+   WallList 
+   ListMap
 in
+  fun {ListMap}
+     fun {ReadMap Row Column}
+   if (Row > (Input.nRow)) then nil
+   else
+     if(Column == Input.nColumn) then 
+        if({List.nth {List.nth Input.map Row} Column} == 1) then
+            pt(x:Column y:Row)|{ReadMap Row+1 1}
+        else
+           {ReadMap Row+1 1}
+        end
+     else 
+        if({List.nth {List.nth Input.map Row} Column} == 1) then
+            pt(x:Column y:Row)|{ReadMap Row Column+1}
+        else
+           {ReadMap Row Column+1}
+        end
+     end
+
+    
+   end
+     end
+  in
+   {ReadMap 1 1} 
+    end
+
+
    fun {GetId State ID}
-      case State
-      of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 ID = Pacman
-	 state
+         ID = State.id
+         State
       end 
    end
    fun {AssignSpawn State S}
-      case State
-      of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 state(p:Pacman s:S ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
-      end
+        {AdjoinList State [p#P s#P]}
    end
    fun {Spawn State P ID}
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
-	 if OnBoard == false andthen Lives >0 then
-	    P = Spawn
-	    ID = Pacman
-	    state(p:Pacman s:Spawn ob:true p:Spawn po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode)
+	 if State.ob == false andthen State.l >0 then
+	    P = State.s
+	    ID = State.id
+      {AdjoinList State [p#State.s ob#true]}
 	 else
 	    P = null
 	    ID = null
@@ -54,6 +77,8 @@ in
 	 end
       end
    end
+%ICI
+
    fun {Move State P ID}
       case State
       of state(p:Pacman s:Spawn ob:OnBoard p:Position po:Point b:Bonus l:Lives sc:Score gh:Ghost m:Mode) then
@@ -214,7 +239,7 @@ in
   in
     {NewPort Stream Port}
     thread
-       {TreatStream Stream state(p:ID s:nil ob:false p:nil po:nil bo:nil l:Input.nbLives sc:0 gh:nil m:Input.isTurnByTurn)}
+       {TreatStream Stream state(id:ID s:nil ob:false p:nil po:nil bo:nil l:Input.nbLives sc:0 gh:nil m:classic)}
     end
     Port
   end
