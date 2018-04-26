@@ -47,7 +47,8 @@ in
 
 %%%% Style of game %%%%
    
-   IsTurnByTurn = true
+   %IsTurnByTurn = true
+   IsTurnByTurn = false
 
 %%%% Description of the map %%%%
   /*
@@ -66,9 +67,18 @@ in
      [0 0 3 0 0 0 0 0 0 0 2 0 0]
      [1 0 0 0 1 0 0 0 1 0 0 0 1]
      [1 1 0 1 1 0 0 0 1 1 0 1 1]]
-     */
+   */
 
-     NRow = 7
+   NRow = 5
+   NColumn = 5
+   Map = [ [1 1 1 1 1]
+	   [1 3 0 0 1]
+	   [1 0 0 2 1]
+	   [1 1 1 1 1]
+	   [1 1 1 1 1] ] 
+
+   
+  /*   NRow = 7
      NColumn = 21
      Map = [
      [1 1 1 0 1 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]
@@ -77,7 +87,9 @@ in
      [1 0 0 0 1 0 1 4 0 0 2 1 0 4 1 0 1 0 0 2 0]
      [1 1 1 1 1 0 1 1 1 0 0 1 1 1 1 0 1 1 0 0 1]
      [0 1 0 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-     [0 1 0 0 0 1 1 1 0 0 0 1 0 0 0 1 1 1 0 1 0]]
+	    [0 1 0 0 0 1 1 1 0 0 0 1 0 0 0 1 1 1 0 1 0]] */
+   
+   
 /*
    NRow = 7
    NColumn = 12
@@ -95,6 +107,10 @@ in
    RespawnTimeBonus = 15
    RespawnTimePacman = 5
    RespawnTimeGhost = 5
+   
+   
+
+   
 
 %%%% Rewards and penalities %%%%
 
@@ -109,9 +125,13 @@ in
    
 %%%% Players description %%%%
 
-   NbPacman = 2
-   Pacman = [pacman000random pacman000random]
-   ColorPacman = [yellow red]
+   %NbPacman = 2
+   %Pacman = [pacman000random pacman000random]
+   %ColorPacman = [yellow red]
+   NbPacman = 1
+   Pacman = [pacman000random]
+   ColorPacman = [yellow]
+   
    NbGhost = 1
    Ghost = [ghost000random]
    ColorGhost = [green]% black red white]
