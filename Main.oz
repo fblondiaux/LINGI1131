@@ -502,7 +502,7 @@ in
    end
 
     %Un bonus est attrapé, toutes les actions correspondantes sont réalisées.
-   fun{WinBonus Id Bonus State}
+   fun{WinBonus Bonus State}
       {Send WindowPort hideBonus(Bonus)}
       {Diffusion PortsPacman bonusRemoved(Bonus)}
       {Diffusion PortsPacman setMode(hunt)}
@@ -578,7 +578,7 @@ in
       [] killPacman(IdGhost ListPacmans)|T then {ServerProc T {KillPacman IdGhost ListPacmans State}}%IdPacman c'est la victime Messages a envoyer voir commentaires + retirer pacman de posP + ajouter dans pacTime (en focntion du nombre de vie qu'il a)    [] pointOn(Pos ?Point)|T then {ServerProc T {PointOn Pos ?Point State}} %Flo c'est fait
       [] winPoint(Id Point )|T then {ServerProc T {WinPoint Id Point State }}  %Flo c'est fait
       [] bonusOn(Pos ?Point)|T then {ServerProc T {BonusOn Pos ?Point State }} %Flo c'est fait
-      [] winBonus(Id Bonus)|T then {ServerProc T {WinBonus Id Bonus State}} %Flo c'est fait
+      [] winBonus(Bonus)|T then {ServerProc T {WinBonus Bonus State}} %Flo c'est fait
       [] killGhost(IdPacman ListGhosts) |T then {ServerProc T {KillGhost IdPacman ListGhosts State}}
       [] whoWin|T then {ServerProc T {WhoWin State}} %Flo ok
       [] endOfGame(?B)|T then B = State.posPac == nil andthen State.pacT == nil {ServerProc T State}
@@ -640,7 +640,7 @@ in
 			   end % if
 			   {Send Server bonusOn(NewPos Bonus)}
 			   if (Bonus \= nil) then
-			      {Send Server winBonus(I Bonus)}
+			      {Send Server winBonus(Bonus)}
 			   end % if
 			end % local
 		     end % local Mode
