@@ -596,6 +596,7 @@ in
 	       {Send Server decPacman(PacToKill)} %TODO 
           {Wait PacToKill}
 	       for I in PacToKill do
+      
 		  {Send Server killPacman(I.1 [I.2])}
 
 	       end

@@ -2,8 +2,8 @@
 functor
 import
    Input
-   Browser
    OS
+   System
 export
    portPlayer:StartPlayer
 define   
@@ -16,129 +16,134 @@ define
    Move
    GotKilled
    PacmanPos
-   KillPacman
    DeathPacman
    SetMode
+   ListMap
+   WallList
    
 in
-   fun {GetId State ID}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 ID = Ghost
-	 state
+   fun {ListMap}
+      fun {ReadMap Row Column}
+    if (Row > (Input.nRow)) then nil
+    else
+      if(Column == Input.nColumn) then 
+         if({List.nth {List.nth Input.map Row} Column} == 1) then
+             pt(x:Column y:Row)|{ReadMap Row+1 1}
+         else
+            {ReadMap Row+1 1}
+         end
+      else 
+         if({List.nth {List.nth Input.map Row} Column} == 1) then
+             pt(x:Column y:Row)|{ReadMap Row Column+1}
+         else
+            {ReadMap Row Column+1}
+         end
       end
+
+     
+    end
+      end
+   in
+    {ReadMap 1 1} 
+     end
+
+   fun {GetId State ?ID}
+         ID = State.g
+         State
    end
    fun {AssignSpawn State P}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:P ob:OnBoard p:Position pac:Pacmans m:Mode)
-      end
+      {AdjoinList State [p#P s#P]}
    end
-   fun {Spawn State ID P}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 if OnBoard == false then
-	    P = Spawn
-	    ID = Ghost
-	    state(g:Ghost s:Spawn ob:true p:Spawn pac:Pacmans m:Mode)
+   fun {Spawn State ?ID ?P}
+	 if State.ob == false then
+	    P = State.s
+	    ID = State.g
+	    {AdjoinList State [ob#true]}
 	 else
 	    P = null
 	    ID = null
 	    State
-	 end
       end
    end
-   fun {Move State ID P}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 if OnBoard then Next in
-	    Next = ({OS.rand} mod 4)+1
-	    case Next#P
-	    of 1#pt(x:X y:Y) then
-	       P = pt(x:X y:Y-1)
-	       ID = Ghost
-	       state(g:Ghost s:Spawn ob:OnBoard p:P pac:Pacmans m:Mode)
-	    [] 2#pt(x:X y:Y) then
-	       P = pt(x:X+1 y:Y)
-	       ID = Ghost
-	       state(g:Ghost s:Spawn ob:OnBoard p:P pac:Pacmans m:Mode)
-	    [] 3#pt(x:X y:Y) then
-	       P = pt(x:X y:Y+1)
-	       ID = Ghost
-	       state(g:Ghost s:Spawn ob:OnBoard p:P pac:Pacmans m:Mode)
-	    [] 4#pt(x:X y:Y) then
-	       P = pt(x:X-1 y:Y)
-	       ID = Ghost
-	       state(g:Ghost s:Spawn ob:OnBoard p:P pac:Pacmans m:Mode)
-	    end
+   fun {Move State ?ID ?P}
+      fun {TakeOutWalls Liste} 
+         case Liste of H|T then 
+            if({List.member H WallList}) then
+               {TakeOutWalls T}
+            else 
+               H|{TakeOutWalls T}
+            end
+         []nil then nil
+         end
+      end   
+      fun {Minus X MaxX}
+         if(X < 1)
+            then MaxX
+         else
+           X
+            end
+      end
+      fun {Max X MaxX}
+         if(X > MaxX) then 1
+         else 
+            X
+         end
+
+      end
+      in 
+	 if State.ob then Next in
+       case State.p of pt(x:X y:Y) then
+         Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+         P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+         {System.show 'Ghost: Ma nouvelle position'}
+         {System.show P}
+         ID = State.g
+         {AdjoinList State [p#P]}
+       end
+
 	 else
 	    P = null
 	    ID = null
 	    State
-	 end
-      end
-   end
-   fun {GotKilled State}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:Spawn ob:false p:Position pac:Pacmans m:Mode)
-      end
-   end
-   fun {PacmanPos State ID P}
-      fun {PacmanPosLoop Pacmans ID P}
-	 case Pacmans
-	 of pacmans(id:IDg p:Position)|T then
-	    if IDg == ID then pacmans(id:IDg p:P)|T
-	    else pacmans(id:IDg p:Position)|{PacmanPosLoop T ID P}
-	    end
-	 [] nil then pacmans(id:ID p:P)|nil
-	 end
-      end
-   in
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:Spawn ob:OnBoard p:Position pac:{PacmanPosLoop Pacmans ID P} m:Mode)
-      end
-   end
-   fun {DeathPacman State ID}
-      fun {DeathPacmanLoop Pacmans ID}
-	 case Pacmans
-	 of pacmans(id:IDp p:P)|T then
-	    if IDp == ID then T
-	    else
-	       pacmans(id:IDp p:P)|{DeathPacmanLoop T ID}
-	    end
-	 end
-      end
-   in
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:Spawn ob:OnBoard p:Position pac:{DeathPacmanLoop Pacmans ID} m:Mode)
       end
    end
 
-% Je ne sais pas comment faire de différence avec DeathPacman
-   fun {KillPacman State ID}
-      fun {KillPacmanLoop Pacmans ID}
-	 case Pacmans
-	 of pacmans(id:IDp p:P)|T then
-	    if IDp == ID then T
-	    else
-	       pacmans(id:IDp p:P)|{KillPacmanLoop T ID}
-	    end
-	 end
+   fun {GotKilled State}
+      {AdjoinList State [ob#false]}
+   end
+
+   fun {PacmanPos State ID P}
+      fun {PacmanPosLoop Pacmans ID P}
+	   case Pacmans
+	     of H|T then
+	        if H.id == ID then {AdjoinList H [p#P]}|T
+	        else H|{PacmanPosLoop T ID P}
+	        end
+	   [] nil then pacmans(id:ID p:P)|nil
+	   end
       end
    in
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:Spawn ob:OnBoard p:Position pac:{KillPacmanLoop Pacmans ID} m:Mode)
-      end
+
+   {AdjoinList State [pac#{PacmanPosLoop State.pac ID P}]}
    end
-   fun {SetMode State M}
-      case State
-      of state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:Mode) then
-	 state(g:Ghost s:Spawn ob:OnBoard p:Position pac:Pacmans m:M)
+
+
+   fun {DeathPacman State ID}
+      fun {DeathPacmanLoop Pacmans ID}
+	     case Pacmans of pacmans(id:IDp p:Pos)|T then
+	        if IDp == ID then T
+	        else
+	           pacmans(id:IDp p:Pos)|{DeathPacmanLoop T ID}
+	        end
+	     end
       end
+   in
+      {AdjoinList State [pac#{DeathPacmanLoop State.pac ID}]}
+   end
+
+
+   fun {SetMode State M}
+      {AdjoinList State [m#M]}
    end
    % ID is a <ghost> ID
    fun{StartPlayer ID}
@@ -146,21 +151,25 @@ in
    in
       {NewPort Stream Port}
       thread
-	 {TreatStream Stream}
+         WallList = {ListMap}
+	     {TreatStream Stream state(g:ID s:nil ob:false p:nil pac:nil m:classic)}
       end
       Port
    end
 
    proc{TreatStream Stream State} % has as many parameters as you want
-
+      {System.show Stream}
+      {System.show State}
       % State = state(g:Ghost s:Spawn ob:OnBoard p:Position p:Pacmans m:Mode)
       
       case Stream
       of getId(?ID)|T then {TreatStream T {GetId State ID}}
       [] move(?ID ?P)|T then {TreatStream T {Move State ID P}}
+      [] assignSpawn(P)|T then {TreatStream T {AssignSpawn State P}}
+      [] spawn(?ID ?P)|T then {TreatStream T {Spawn State ID P}}
       [] gotKilled()|T then {TreatStream T {GotKilled State}}
-      [] pacmanPos(ID P)|T then {TreatStream T {PacmanPos ID P}}
-      [] killPacman(ID)|T then {TreatStream T {KillPacman State ID}}
+      [] pacmanPos(ID P)|T then {TreatStream T {PacmanPos State ID P}}
+      [] killPacman(_)|T then {TreatStream T State} %On ne fait rien de cette info
       [] deathPacman(ID)|T then {TreatStream T {DeathPacman State ID}}
       [] setMode(M)|T then {TreatStream T {SetMode State M}}	 
       end

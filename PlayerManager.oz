@@ -1,7 +1,7 @@
 functor
 import
    Pacman000random
-   Ghost000random
+   Ghost000other
 export
    playerGenerator:PlayerGenerator
 define
@@ -11,7 +11,7 @@ in
    fun{PlayerGenerator Kind ID}
       case Kind
       of pacman000random then {Pacman000random.portPlayer ID}
-      [] ghost000random then {Ghost000random.portPlayer ID}
+      [] ghost000other then {Ghost000other.portPlayer ID}
       end
    end
 end
