@@ -41,17 +41,17 @@ define
 
    StateModification
 
-   MainURL={OS.getCWD}
-   %PacManImg={QTk.newImage photo(url:MainURL#"/pacman.gif")}
-   SpawnP = {QTk.newImage photo(url:MainURL#"/spawnP.gif")}
-   SpawnG= {QTk.newImage photo(url:MainURL#"/spawnG.gif")}
-   AliceIm = {QTk.newImage photo(url:MainURL#"/alice.gif")}
-   CatIm = {QTk.newImage photo(url:MainURL#"/chat.gif")}
-   LapinIm = {QTk.newImage photo(url:MainURL#"/lapin.gif")}
-   PotionIm = {QTk.newImage photo(url:MainURL#"/potion.gif")} 
-   PointIm = {QTk.newImage photo(url:MainURL#"/champ.gif")}
-   GhostIm = {QTk.newImage photo(url:MainURL#"/carte.gif")}
-   HuntIm = {QTk.newImage photo(url:MainURL#"/cartenoir.gif")}
+   Path={OS.getCWD}
+   %PacManImg={QTk.newImage photo(url:Path#"/pacman.gif")}
+   SpawnP = {QTk.newImage photo(url:Path#"/spawnP.gif")}
+   SpawnG= {QTk.newImage photo(url:Path#"/spawnG.gif")}
+   AliceIm = {QTk.newImage photo(url:Path#"/alice.gif")}
+   CatIm = {QTk.newImage photo(url:Path#"/chat.gif")}
+   LapinIm = {QTk.newImage photo(url:Path#"/lapin.gif")}
+   PotionIm = {QTk.newImage photo(url:Path#"/potion.gif")} 
+   PointIm = {QTk.newImage photo(url:Path#"/champ.gif")}
+   GhostIm = {QTk.newImage photo(url:Path#"/carte.gif")}
+   HuntIm = {QTk.newImage photo(url:Path#"/cartenoir.gif")}
 
 in
 
@@ -130,7 +130,7 @@ in
    fun{InitPacman Grid ID}
       Handle HandleLife HandleScore Id Color LabelPacman LabelLife LabelScore Choose Image
    in
-      Image = [AliceIm LapinIm CatIm]
+      Image = [AliceIm LapinIm CatIm CatIm]
       Choose = {List.nth Image ({OS.rand} mod {List.length Image})+1}
       pacman(id:Id color:Color name:_) = ID
 
@@ -263,7 +263,7 @@ in
 	 of classic then
 	    {Handle set(bg:c(255 255 255) image:GhostIm)}
 	 [] hunt then
-	    {Handle set(bg:c(105 105 105) image:HuntIm)}
+	    {Handle set(bg:c(0 0 0) image:HuntIm)}
 	 end
 	 State.1|{ChangeMode M Next}
       end

@@ -1198,6 +1198,7 @@ in
 	       {Send Server decPacman(PacToKill)} %TODO 
 	       {Wait PacToKill}
 	       for I in PacToKill do
+      
 		  {Send Server killPacman(I.1 [I.2])}
 
 	       end
@@ -1292,7 +1293,8 @@ in
 
       else %[] 1 then %fin du jeu
 	 {Send Server whoWin}
-	 {Delay 5000} % Ici il recommence Clientfonc et je ne vois pas pourquoi il fait ça
+
+         {Delay 5000} 
       end %end of cas
    end%end fun
 

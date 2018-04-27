@@ -67,39 +67,31 @@ in
      [0 0 3 0 0 0 0 0 0 0 2 0 0]
      [1 0 0 0 1 0 0 0 1 0 0 0 1]
      [1 1 0 1 1 0 0 0 1 1 0 1 1]]
-   */
 
-   NRow = 5
-   NColumn = 5
-   Map = [ [1 1 1 1 1]
-	   [1 3 0 2 1]
-	   [1 1 1 1 1]
-	   [1 1 1 1 1]
-	   [1 1 1 1 1] ] 
-
-   
-  /*   NRow = 7
+     */
+     NRow = 7
      NColumn = 21
      Map = [
-     [1 1 1 0 1 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]
+     [1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]
      [0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 0 0]
-     [1 0 1 0 1 0 1 1 1 0 0 1 0 1 1 0 1 1 0 0 0]
-     [1 0 0 0 1 0 1 4 0 0 2 1 0 4 1 0 1 0 0 2 0]
+     [0 0 1 0 1 0 1 1 1 0 0 1 0 1 1 0 1 1 0 0 0]
+     [0 0 0 0 1 0 1 4 0 0 2 1 0 4 1 0 1 0 0 2 0]
      [1 1 1 1 1 0 1 1 1 0 0 1 1 1 1 0 1 1 0 0 1]
      [0 1 0 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-	    [0 1 0 0 0 1 1 1 0 0 0 1 0 0 0 1 1 1 0 1 0]] */
-   
-   
+
+     [1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]]
+
 /*
    NRow = 7
    NColumn = 12
-   Map = [[1 1 1 1 1 1 1 1 1 1 1 1]
-	  [1 0 0 0 0 0 1 0 0 0 0 1]
+   Map = [
+     [1 1 1 1 1 0 1 1 1 1 1 1]
+	  [1 0 0 0 1 0 1 0 0 0 0 1]
 	  [1 0 1 1 1 3 1 1 0 1 0 1]
-	  [1 0 0 0 1 0 0 1 0 1 0 1]
-	  [1 0 1 0 1 1 0 1 0 1 0 1]
-	  [1 1 0 4 2 1 0 0 2 0 0 1]
-	  [1 1 1 1 1 1 1 1 1 1 1 1]]
+	  [1 0 0 0 1 0 1 1 0 1 0 1]
+	  [1 0 1 0 1 0 1 1 0 1 0 1]
+	  [1 1 0 4 1 0 1 0 2 0 0 1]
+	  [1 1 1 1 1 0 1 1 1 1 1 1]]
      */
 %%%% Respawn times %%%%
    
@@ -125,15 +117,13 @@ in
    
 %%%% Players description %%%%
 
-   %NbPacman = 2
-   %Pacman = [pacman000random pacman000random]
-   %ColorPacman = [yellow red]
-   NbPacman = 1
-   Pacman = [pacman000random]
-   ColorPacman = [yellow]
-   
+
+   NbPacman = 2
+   Pacman = [pacman093other pacman093other]
+   ColorPacman = [yellow red]
+
    NbGhost = 1
-   Ghost = [ghost000random]
+   Ghost = [ghost093other]
    ColorGhost = [green]% black red white]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
