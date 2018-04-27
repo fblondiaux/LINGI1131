@@ -4,7 +4,7 @@ import
    Input
    PlayerManager
    OS
-   Browser
+   
 define
    CreatePortPacman
    CreatePortGhost
@@ -261,7 +261,6 @@ in
    fun {Timer}
       {NewPortObject2
        proc {$ Msg}
-	 {Browser.browse Msg} 
 	  case Msg
 	  of starttimerMovePacman(T Server Id NewPos) then
 	     thread
@@ -374,7 +373,7 @@ in
 	 local Ret in
 	    {PacmanOn PCheck Ret State _}
 	    if Ret \= nil then % il y a au moins 1 pacman sur la case où le ghost a spawn
-	       thread {Send Server killPacman( Ret IdG PortTimer Server)} end
+	       thread {Send Server killPacman( Ret IdG )} end
 	       {AdjoinList State [posG#{List.append [IdCheck#PCheck] State.posG}]}
 	    else
 	       {AdjoinList State [posG#{List.append [IdCheck#PCheck] State.posG}]}
@@ -407,8 +406,6 @@ in
       PortTimer = {Timer}
       Cid
       proc {ServerProc2 Msg State}
-	 {Browser.browse Msg}
-	 {Browser.browse State}
 	 case Msg
 	 of stoptimerMovePacman(Id NewPos)|T then {ServerProc2 T {MovePacman Id NewPos State}}
 	 [] stoptimerMoveGhost(Id NewPos)|T then {ServerProc2 T {MoveGhost Id NewPos State}}
@@ -1190,7 +1187,6 @@ in
 			else %mode hunt
 			   local Liste in
 			      {Send Server ghostOn(NewPos Liste)}
-               %{Browser.browse Liste}
 			      if(Liste \= nil) then
 				 {Send Server killGhost(I Liste)}
 			      end % if
@@ -1219,7 +1215,6 @@ in
 			if (Mode==classic) then
 			   local Liste in
 			      {Send Server pacmanOn(NewPos Liste)}
-               %{Browser.browse Liste}
 			      if(Liste \= nil) then
 				 {Send Server  killPacman(I Liste)} %La meme qu'au dessus dans case pacman
 
@@ -1229,7 +1224,6 @@ in
 			else % Mode hunt
 			   local Liste in
 			      {Send Server pacmanOn(NewPos ?Liste)}
-               %{Browser.browse Liste}
 			      if(Liste \= nil) then
                       %-> Random dans la liste le tueur.
 				 {Send Server killGhost({List.nth Liste ({OS.rand} mod {List.length Liste})+1} [I])}%La meme qu'au dessus
