@@ -88,16 +88,29 @@ in
       in 
          {GhostOnLoop Pos State.gh}
       end
-      fun {TakeOutWalls Liste} 
+      fun {TakeOutWallsClassic Liste} 
    case Liste of H|T then 
       if({List.member H WallList} orelse {GhostOn H}) then
-         {TakeOutWalls T}
+         {TakeOutWallsClassic T}
       else 
-         H|{TakeOutWalls T}
+         H|{TakeOutWallsClassic T}
       end
    []nil then nil
    end
       end   
+   fun {TakeOutWallsHunt Liste} 
+   case Liste of H|T then 
+      if({GhostOn H}) then [H] 
+      else
+         if({List.member H WallList}) then
+            {TakeOutWallsHunt T}
+         else 
+            H|{TakeOutWallsHunt T}
+         end
+      end
+   []nil then nil
+   end
+      end 
       fun {Minus X MaxX}
    if(X < 1)
    then MaxX
@@ -115,8 +128,11 @@ in
    in 
       if State.ob then Next in
    case State.p of pt(x:X y:Y) then
-      Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
-      if(Next == nil) then 
+   if(State.m == classic) then
+      Next = {TakeOutWallsClassic [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+   else Next = {TakeOutWallsHunt [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+   end
+     if(Next == nil) then 
                P = State.p
                ID = State.id
       else

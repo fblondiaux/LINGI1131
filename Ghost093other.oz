@@ -3,7 +3,6 @@ functor
 import
    Input
    OS
-   System
 export
    portPlayer:StartPlayer
 define   
@@ -66,47 +65,85 @@ in
       end
    end
 
-   fun{Move State ?ID ?P}
-         fun {TakeOutWalls Liste} 
+
+fun {Move State ID P}
+   fun{PacmanOn Pos} %On ne retire p         
+      fun{PacmanOnLoop Pos List}
+   case List of pacmans(id:_ p:P)|T then
+      if(P==Pos) then true
+      else {PacmanOnLoop Pos T}
+      end
+   []nil then false
+   end
+      end
+   in 
+      {PacmanOnLoop Pos State.pac}
+   end
+   fun {TakeOutWallsClassic Liste} 
       case Liste of H|T then 
-         if({List.member H WallList}) then
-            {TakeOutWalls T}
-         else 
-            H|{TakeOutWalls T}
+         if({PacmanOn H}) then [H]
+         else
+     if({List.member H WallList}) then
+        {TakeOutWallsClassic T}
+     else 
+        H|{TakeOutWallsClassic T}
+     end
          end
+         []nil then nil
+      end
+   end
+   
+
+
+   fun {TakeOutWallsHunt Liste} 
+      case Liste of H|T then 
+   if({List.member H WallList} orelse {PacmanOn H}) then
+      {TakeOutWallsHunt T}
+   else 
+      H|{TakeOutWallsHunt T}
+   end
       []nil then nil
       end
-         end   
-         fun {Minus X MaxX}
+   end   
+   fun {Minus X MaxX}
       if(X < 1)
       then MaxX
       else
-         X
+   X
       end
-         end
-         fun {Max X MaxX}
+   end
+   fun {Max X MaxX}
       if(X > MaxX) then 1
       else 
-         X
+   X
       end
 
-         end
-      in 
-         if State.ob then Next in
+   end
+in 
+   if State.ob then Next in
       case State.p of pt(x:X y:Y) then
-         Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
-         P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+   if(State.m == classic) then
+      Next = {TakeOutWallsClassic [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+   else Next = {TakeOutWallsHunt [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+   end
 
-         ID = State.g
-         {AdjoinList State [p#P]}
+   if(Next == nil) then 
+      P = State.p
+      ID = State.g
+   else
+      P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+      ID = State.g
+   end
+
+   {AdjoinList State [p#P]}
       end
 
-         else
+   else
       P = null
       ID = null
       State
    end
-   end
+end
 /*
    fun {Move State ?ID ?P}
       fun{PacmanOn Pos} %On ne retire p         
@@ -217,13 +254,13 @@ in
 
 
    fun {DeathPacman State ID} 
-      {System.show ID}
       fun {DeathPacmanLoop Pacmans ID}
 	     case Pacmans of pacmans(id:IDp p:Pos)|T then
 	        if IDp == ID then T
 	        else
 	           pacmans(id:IDp p:Pos)|{DeathPacmanLoop T ID}
 	        end
+        []nil then nil
 	     end
       end
    in
@@ -248,12 +285,12 @@ in
 
    proc{TreatStream Stream State} % has as many parameters as you want
       % State = state(g:Ghost s:Spawn ob:OnBoard p:Position p:Pacmans m:Mode)
-      {System.show (State)}
+
       case Stream
       of getId(?ID)|T then {TreatStream T {GetId State ID}}
       [] move(?ID ?P)|T then {TreatStream T {Move State ID P}}
       [] assignSpawn(P)|T then {TreatStream T {AssignSpawn State P}}
-      [] spawn(?ID ?P)|T then {TreatStream T {Spawn State ID P}}
+      [] spawn(?ID ?P)|T then  {TreatStream T {Spawn State ID P}}
       [] gotKilled()|T then {TreatStream T {GotKilled State}}
       [] pacmanPos(ID P)|T then {TreatStream T {PacmanPos State ID P}}
       [] killPacman(_)|T then {TreatStream T State} %On ne fait rien de cette info

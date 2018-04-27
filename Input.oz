@@ -109,9 +109,9 @@ in
    
 %%%% Players description %%%%
 
-   NbPacman = 1
-   Pacman = [pacman093other]
-   ColorPacman = [yellow]
+   NbPacman = 2
+   Pacman = [pacman093other pacman093other]
+   ColorPacman = [yellow red]
    NbGhost = 1
    Ghost = [ghost093other]
    ColorGhost = [green]% black red white]
