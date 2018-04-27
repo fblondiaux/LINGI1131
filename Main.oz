@@ -1066,7 +1066,7 @@ in
       {Diffusion PortsPacman setMode(hunt)}
       {Diffusion PortsGhost setMode(hunt)}
       {Send WindowPort setMode(hunt)}
-      {AdjoinList State [m#hunt]}
+      {AdjoinList State [m#hunt hT#(Input.huntTime * (Input.nbGhost + Input.nbPacman))]}
    end
 
    fun{HuntMode Mode State}
@@ -1126,6 +1126,7 @@ in
    end
 
    proc {ServerProc Msg State}
+
       case Msg
       of decPacman(PacToKill)|T then {ServerProc T {DecPacman PacToKill State}} 
       [] decGhost|T then {ServerProc T {DecGhost State}} %Flo c'est fait
@@ -1153,7 +1154,7 @@ in
    proc{ClientFonc Msg Server}
       if(Msg == 0) then
 	 for I in Sequence do % Sequence =  id ghost et id pacmans melanges
-
+		
 	    local PacToKill in
 
 	       {Send Server decPacman(PacToKill)} %TODO 
