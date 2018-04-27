@@ -691,7 +691,7 @@ in
 
       else %[] 1 then %fin du jeu
 	 {Send Server whoWin}
-         {Delay 5000} % Ici il recommence Clientfonc et je ne vois pas pourquoi il fait ça
+         {Delay 5000} 
       end %end of cas
    end%end fun
 

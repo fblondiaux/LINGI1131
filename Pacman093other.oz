@@ -63,23 +63,34 @@ in
    end
    fun {Spawn State P ID}
       
-   if State.ob == false andthen State.l >0 then
-      P = State.s
-      ID = State.id
-      {AdjoinList State [p#State.s ob#true]}
-   else
-      P = null
-      ID = null
-      State
-
+      if State.ob == false andthen State.l >0 then
+         P = State.s
+         ID = State.id
+         {AdjoinList State [p#State.s ob#true]}
+      else
+         P = null
+         ID = null
+         State
       end
    end
 
 
    fun {Move State P ID}
+      fun{GhostOn Pos} %On ne retire p         
+         fun{GhostOnLoop Pos List}
+       case List of go(id:_ p:P)|T then
+          if(P==Pos) then true
+          else {GhostOnLoop Pos T}
+          end
+       []nil then false
+       end
+         end
+      in 
+         {GhostOnLoop Pos State.gh}
+      end
       fun {TakeOutWalls Liste} 
    case Liste of H|T then 
-      if({List.member H WallList}) then
+      if({List.member H WallList} orelse {GhostOn H}) then
          {TakeOutWalls T}
       else 
          H|{TakeOutWalls T}
@@ -105,9 +116,14 @@ in
       if State.ob then Next in
    case State.p of pt(x:X y:Y) then
       Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
-      P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+      if(Next == nil) then 
+               P = State.p
+               ID = State.id
+      else
+               P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+               ID = State.id
+      end
 
-      ID = State.id
       {AdjoinList State [p#P]}
    end
 

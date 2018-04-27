@@ -70,13 +70,13 @@ in
      NRow = 7
      NColumn = 21
      Map = [
-     [1 1 1 0 1 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]
+     [1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]
      [0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 0 0]
-     [1 0 1 0 1 0 1 1 1 0 0 1 0 1 1 0 1 1 0 0 0]
-     [1 0 0 0 1 0 1 4 0 0 2 1 0 4 1 0 1 0 0 2 0]
+     [0 0 1 0 1 0 1 1 1 0 0 1 0 1 1 0 1 1 0 0 0]
+     [0 0 0 0 1 0 1 4 0 0 2 1 0 4 1 0 1 0 0 2 0]
      [1 1 1 1 1 0 1 1 1 0 0 1 1 1 1 0 1 1 0 0 1]
      [0 1 0 3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-     [0 1 0 0 0 1 1 1 0 0 0 1 0 0 0 1 1 1 0 1 0]]
+     [1 1 0 0 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1]]
 /*
    NRow = 7
    NColumn = 12
@@ -110,10 +110,10 @@ in
 %%%% Players description %%%%
 
    NbPacman = 1
-   Pacman = [pacman000other]
+   Pacman = [pacman093other]
    ColorPacman = [yellow]
    NbGhost = 1
-   Ghost = [ghost000other]
+   Ghost = [ghost093other]
    ColorGhost = [green]% black red white]
 
 %%%% Thinking parameters (only in simultaneous) %%%%

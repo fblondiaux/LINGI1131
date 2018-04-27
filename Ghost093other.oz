@@ -3,6 +3,7 @@ functor
 import
    Input
    OS
+   System
 export
    portPlayer:StartPlayer
 define   
@@ -215,7 +216,8 @@ in
    end
 
 
-   fun {DeathPacman State ID}
+   fun {DeathPacman State ID} 
+      {System.show ID}
       fun {DeathPacmanLoop Pacmans ID}
 	     case Pacmans of pacmans(id:IDp p:Pos)|T then
 	        if IDp == ID then T
@@ -246,7 +248,7 @@ in
 
    proc{TreatStream Stream State} % has as many parameters as you want
       % State = state(g:Ghost s:Spawn ob:OnBoard p:Position p:Pacmans m:Mode)
-      
+      {System.show (State)}
       case Stream
       of getId(?ID)|T then {TreatStream T {GetId State ID}}
       [] move(?ID ?P)|T then {TreatStream T {Move State ID P}}
