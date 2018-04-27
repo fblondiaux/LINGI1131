@@ -2,8 +2,6 @@
 functor
 import
    Input
-   OS
-   System
 export
    portPlayer:StartPlayer
 define   
@@ -65,46 +63,87 @@ in
 	    State
       end
    end
+
    fun {Move State ?ID ?P}
+      fun{PacmanOn Pos} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
+         fun{PacmanOnLoop Pos List}
+       case List of pacmans(id:_ p:P)|T then
+          if(P==Pos) then true
+          else {PacmanOnLoop Pos T}
+          end
+       []nil then false
+       end
+         end
+      in 
+         {PacmanOnLoop Pos State.pac}
+      end
+      proc{Find Pinit Pcurrent Res}
+         Val in 
+         Val = {List.nth {List.nth Input.map Pcurrent.y} Pcurrent.x}
+         if(Val\= 1) then 
+       if({PacmanOn Pcurrent}) then Res = Pinit
+       else 
+          local V1 V2 V3 V4 in
+             V1 = {Find Pinit pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow})}
+             V2 = {Find Pinit pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y)}
+             V3 = {Find Pinit pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow})}
+             V4 = {Find Pinit pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y)}
+             Res = {Wait4 V1 V2 V3 V4 }
+          end
+       end
+         else 
+          Res =_
+         end      
+      end
+
+      proc{Wait4 V1 V2 V3 V4 ?R}
+         thread {Wait V1} R =V1 end
+         thread {Wait V2} R=V2 end
+         thread {Wait V3} R=V3 end 
+         thread {Wait V4} R=V4 end
+      end
+
       fun {TakeOutWalls Liste} 
          case Liste of H|T then 
-            if({List.member H WallList}) then
-               {TakeOutWalls T}
-            else 
-               H|{TakeOutWalls T}
-            end
+       if({List.member H WallList}) then
+          {TakeOutWalls T}
+       else 
+          H|{TakeOutWalls T}
+       end
          []nil then nil
          end
       end   
       fun {Minus X MaxX}
          if(X < 1)
-            then MaxX
+         then MaxX
          else
-           X
-            end
+       X
+         end
       end
       fun {Max X MaxX}
          if(X > MaxX) then 1
          else 
-            X
+       X
+         end
+      end
+   in 
+      if State.ob then %Next in
+         local Pcurrent in
+       Pcurrent = State.p
+
+           %Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+       P = {Wait4 {Find pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow}) pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow})}
+            {Find pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y) pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y)} 
+            {Find pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow}) pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow})}
+            {Find pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y) pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y)}}
+       ID = State.g
+       {AdjoinList State [p#P]}
          end
 
-      end
-      in 
-	 if State.ob then Next in
-       case State.p of pt(x:X y:Y) then
-         Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
-         P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
-         {System.show 'Ghost: Ma nouvelle position'}
-         {System.show P}
-         ID = State.g
-         {AdjoinList State [p#P]}
-       end
-
-	 else
-	    P = null
-	    ID = null
-	    State
+      else
+         P = null
+         ID = null
+         State
       end
    end
 
@@ -158,8 +197,6 @@ in
    end
 
    proc{TreatStream Stream State} % has as many parameters as you want
-      {System.show Stream}
-      {System.show State}
       % State = state(g:Ghost s:Spawn ob:OnBoard p:Position p:Pacmans m:Mode)
       
       case Stream
