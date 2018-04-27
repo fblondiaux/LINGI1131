@@ -2,6 +2,7 @@
 functor
 import
    Input
+   OS
 export
    portPlayer:StartPlayer
 define   
@@ -64,8 +65,50 @@ in
       end
    end
 
+   fun{Move State ?ID ?P}
+         fun {TakeOutWalls Liste} 
+      case Liste of H|T then 
+         if({List.member H WallList}) then
+            {TakeOutWalls T}
+         else 
+            H|{TakeOutWalls T}
+         end
+      []nil then nil
+      end
+         end   
+         fun {Minus X MaxX}
+      if(X < 1)
+      then MaxX
+      else
+         X
+      end
+         end
+         fun {Max X MaxX}
+      if(X > MaxX) then 1
+      else 
+         X
+      end
+
+         end
+      in 
+         if State.ob then Next in
+      case State.p of pt(x:X y:Y) then
+         Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+         P = {List.nth Next ({OS.rand} mod {List.length Next})+1}
+
+         ID = State.g
+         {AdjoinList State [p#P]}
+      end
+
+         else
+      P = null
+      ID = null
+      State
+   end
+   end
+/*
    fun {Move State ?ID ?P}
-      fun{PacmanOn Pos} %On ne retire pas les pacman de l'état, l'état n'est pas modifié
+      fun{PacmanOn Pos} %On ne retire p         
          fun{PacmanOnLoop Pos List}
        case List of pacmans(id:_ p:P)|T then
           if(P==Pos) then true
@@ -77,38 +120,42 @@ in
       in 
          {PacmanOnLoop Pos State.pac}
       end
-      proc{Find Pinit Pcurrent Res}
+      proc{Find Pinit Pcurrent Done Res}
          Val in 
          Val = {List.nth {List.nth Input.map Pcurrent.y} Pcurrent.x}
          if(Val\= 1) then 
        if({PacmanOn Pcurrent}) then Res = Pinit
        else 
-          local V1 V2 V3 V4 in
-             V1 = {Find Pinit pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow})}
-             V2 = {Find Pinit pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y)}
-             V3 = {Find Pinit pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow})}
-             V4 = {Find Pinit pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y)}
-             Res = {Wait4 V1 V2 V3 V4 }
+          local Next NextNew in
+             Next =[pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow}) pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y) pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow}) pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y)]
+             NextNew = {KickList Next Done}
+             {WaitList {StartFind NextNew Pinit {List.append Done NextNew}} Res}
           end
        end
          else 
-          Res =_
+       Res =_
          end      
       end
 
-      proc{Wait4 V1 V2 V3 V4 ?R}
-         thread {Wait V1} R =V1 end
-         thread {Wait V2} R=V2 end
-         thread {Wait V3} R=V3 end 
-         thread {Wait V4} R=V4 end
+      fun{StartFind L InitPos Done}
+         case L of H|T then
+       {Find InitPos H Done}|{StartFind T InitPos Done}
+         []nil then nil 
+         end
       end
 
-      fun {TakeOutWalls Liste} 
+      proc{WaitList Liste R}
+         for I in Liste do 
+       thread {Wait I} R = I end
+         end
+      end
+
+      fun {KickList Liste ToRemove} 
          case Liste of H|T then 
-       if({List.member H WallList}) then
-          {TakeOutWalls T}
+       if({List.member H ToRemove}) then
+          {KickList T ToRemove}
        else 
-          H|{TakeOutWalls T}
+          H|{KickList T ToRemove}
        end
          []nil then nil
          end
@@ -131,11 +178,11 @@ in
          local Pcurrent in
        Pcurrent = State.p
 
-           %Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
-       P = {Wait4 {Find pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow}) pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow})}
-            {Find pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y) pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y)} 
-            {Find pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow}) pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow})}
-            {Find pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y) pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y)}}
+              %Next = {TakeOutWalls [pt(x:X y:{Minus Y-1 Input.nRow}) pt(x:{Max X+1 Input.nColumn} y:Y) pt(x:X y:{Max Y+1 Input.nRow}) pt(x:{Minus X-1 Input.nColumn} y:Y)]}
+       P = {WaitList [{Find pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow}) pt(x:Pcurrent.x y:{Minus Pcurrent.y-1 Input.nRow}) nil}
+            {Find pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y) pt(x:{Max Pcurrent.x+1 Input.nColumn} y:Pcurrent.y) nil} 
+            {Find pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow}) pt(x:Pcurrent.x y:{Max Pcurrent.y+1 Input.nRow}) nil}
+            {Find pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y) pt(x:{Minus Pcurrent.x-1 Input.nColumn} y:Pcurrent.y) nil}]}
        ID = State.g
        {AdjoinList State [p#P]}
          end
@@ -146,6 +193,7 @@ in
          State
       end
    end
+   */
 
    fun {GotKilled State}
       {AdjoinList State [ob#false]}
