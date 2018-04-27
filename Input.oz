@@ -48,7 +48,7 @@ in
 %%%% Style of game %%%%
    
    %IsTurnByTurn = true
-   IsTurnByTurn = false
+   IsTurnByTurn = true
 
 %%%% Description of the map %%%%
   /*
