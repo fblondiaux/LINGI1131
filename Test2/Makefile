@@ -6,7 +6,8 @@ all : Input.oz PlayerManager.oz GUI.oz Main.oz Pacman093other.oz Ghost093other.o
 	ozc -c GUI.oz
 	ozc -c Main.oz
 	ozengine Main.ozf
-
+q : Input.ozf PlayerManager.ozf GUI.ozf Main.ozf Pacman093other.ozf Ghost093other.ozf
+	ozengine Main.ozf
 
 clear:
 	rm Input.ozf
