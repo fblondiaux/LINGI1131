@@ -1,24 +1,11 @@
-all : Input.oz PlayerManager.oz GUI.oz Main.oz Pacman093other.oz Ghost093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Input.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c PlayerManager.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Pacman093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Ghost093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c GUI.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Main.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozengine Main.ozf
+all : run
 
-test3 : Input.oz PlayerManager.oz GUI.oz Main.oz Pacman093other.oz Ghost093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Input.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c PlayerManager.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Pacman093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Ghost093other.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c GUI.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Main.oz
-	/Applications/Mozart2.app/Contents/Resources/bin/ozengine Main.ozf
-
+%.ozf: %.oz
+	ozc -c $<
+run: Input.ozf PlayerManager.ozf GUI.ozf Main.ozf Pacman093other.ozf Ghost093other.ozf
+	ozengine Main.ozf
 
 clear:
-	rm Input.ozf
 	rm Input.ozf
 	rm PlayerManager.ozf
 	rm Main.ozf
